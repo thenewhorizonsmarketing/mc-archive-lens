@@ -1,7 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
+import Papa from "papaparse";
 import { AlumniGrid } from "@/components/AlumniGrid";
 import { DecadeFilter } from "@/components/DecadeFilter";
 import { CSVUploader } from "@/components/CSVUploader";
+import { CSVValidationPreview } from "@/components/CSVValidationPreview";
 import { AlumniStats } from "@/components/AlumniStats";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +12,7 @@ import { AlumniRecord } from "@/types";
 import { Home, Search, Database } from "lucide-react";
 import { parseAlumniCSV, filterAlumni, getUniqueDecades, getAlumniStats } from "@/lib/csvParser";
 import { loadDefaultAlumniCSV } from "@/lib/loadDefaultCSV";
+import { validateCSVData, ValidationReport } from "@/lib/csvValidator";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -30,6 +33,8 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [csvFileName, setCsvFileName] = useState<string | undefined>(undefined);
   const [showUploader, setShowUploader] = useState(false);
+  const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   // Load default CSV on mount
   useEffect(() => {
@@ -46,21 +51,64 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
     loadDefault();
   }, []);
 
-  // Handle CSV file upload
+  // Handle CSV file selection - validate first
   const handleCSVUpload = async (file: File) => {
     setIsLoading(true);
+    setPendingFile(file);
+    
     try {
-      const parsedAlumni = await parseAlumniCSV(file);
-      setAlumniData(parsedAlumni);
-      setCsvFileName(file.name);
-      setShowUploader(false);
-      toast.success(`Successfully loaded ${parsedAlumni.length} alumni records`);
+      // Parse CSV to get raw data for validation
+      const result = await new Promise<any[]>((resolve, reject) => {
+        Papa.parse(file, {
+          header: true,
+          skipEmptyLines: true,
+          dynamicTyping: false,
+          transformHeader: (header) => header.trim().toLowerCase(),
+          complete: (results) => resolve(results.data),
+          error: (error) => reject(error)
+        });
+      });
+
+      // Validate the data
+      const report = validateCSVData(result);
+      setValidationReport(report);
+      
+      toast.info('CSV validation complete - review the report');
     } catch (error) {
-      toast.error(`Failed to parse CSV: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      console.error('CSV parsing error:', error);
+      toast.error(`Failed to read CSV: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('CSV reading error:', error);
+      setPendingFile(null);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Confirm import after validation
+  const handleConfirmImport = async () => {
+    if (!pendingFile) return;
+    
+    setIsLoading(true);
+    try {
+      const parsedAlumni = await parseAlumniCSV(pendingFile);
+      setAlumniData(parsedAlumni);
+      setCsvFileName(pendingFile.name);
+      setShowUploader(false);
+      setValidationReport(null);
+      setPendingFile(null);
+      toast.success(`Successfully imported ${parsedAlumni.length} alumni records`);
+    } catch (error) {
+      toast.error(`Failed to import CSV: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('CSV import error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Cancel validation and import
+  const handleCancelImport = () => {
+    setValidationReport(null);
+    setPendingFile(null);
+    toast.info('Import cancelled');
   };
 
   // Extract unique decades
@@ -106,12 +154,24 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
         </div>
 
         {/* CSV Uploader */}
-        {showUploader && (
+        {showUploader && !validationReport && (
           <div className="mb-8">
             <CSVUploader
               onFileSelect={handleCSVUpload}
               isLoading={isLoading}
               fileName={csvFileName}
+            />
+          </div>
+        )}
+
+        {/* Validation Report */}
+        {validationReport && pendingFile && (
+          <div className="mb-8">
+            <CSVValidationPreview
+              report={validationReport}
+              fileName={pendingFile.name}
+              onConfirm={handleConfirmImport}
+              onCancel={handleCancelImport}
             />
           </div>
         )}
