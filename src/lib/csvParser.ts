@@ -145,14 +145,19 @@ export function filterAlumni(
   alumni: AlumniRecord[],
   filters: {
     decade?: string | null;
+    year?: number | null;
     searchQuery?: string;
     hasPhoto?: boolean;
     hasRole?: boolean;
+    specificRole?: string | null;
   }
 ): AlumniRecord[] {
   return alumni.filter(alumnus => {
+    // Year filter (takes precedence over decade)
+    if (filters.year && alumnus.grad_year !== filters.year) return false;
+    
     // Decade filter
-    if (filters.decade && alumnus.decade !== filters.decade) return false;
+    if (!filters.year && filters.decade && alumnus.decade !== filters.decade) return false;
     
     // Search filter
     if (filters.searchQuery) {
@@ -164,8 +169,11 @@ export function filterAlumni(
     // Photo filter
     if (filters.hasPhoto && !alumnus.portrait_path) return false;
     
-    // Role filter
+    // Role filter (has any role)
     if (filters.hasRole && !alumnus.class_role) return false;
+    
+    // Specific role filter
+    if (filters.specificRole && alumnus.class_role !== filters.specificRole) return false;
     
     return true;
   });
@@ -175,6 +183,22 @@ export function filterAlumni(
 export function getUniqueDecades(alumni: AlumniRecord[]): string[] {
   const decades = new Set(alumni.map(a => a.decade));
   return Array.from(decades).sort();
+}
+
+// Get unique graduation years from alumni records
+export function getUniqueYears(alumni: AlumniRecord[]): number[] {
+  const years = new Set(alumni.map(a => a.grad_year));
+  return Array.from(years).sort((a, b) => a - b);
+}
+
+// Get unique roles from alumni records
+export function getUniqueRoles(alumni: AlumniRecord[]): string[] {
+  const roles = new Set(
+    alumni
+      .map(a => a.class_role)
+      .filter((role): role is string => !!role && role.trim().length > 0)
+  );
+  return Array.from(roles).sort();
 }
 
 // Get alumni statistics

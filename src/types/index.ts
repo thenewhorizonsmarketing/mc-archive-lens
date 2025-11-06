@@ -77,6 +77,7 @@ export interface AlumniFilters {
   decade?: string;
   hasPhoto?: boolean;
   hasRole?: boolean;
+  specificRole?: string;
   searchQuery?: string;
 }
 

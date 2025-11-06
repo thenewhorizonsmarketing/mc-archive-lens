@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import Papa from "papaparse";
 import { AlumniGrid } from "@/components/AlumniGrid";
-import { DecadeFilter } from "@/components/DecadeFilter";
+import { AdvancedFilters } from "@/components/AdvancedFilters";
 import { CSVUploader } from "@/components/CSVUploader";
 import { CSVValidationPreview } from "@/components/CSVValidationPreview";
 import { AlumniStats } from "@/components/AlumniStats";
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { sampleAlumni } from "@/lib/sampleData";
 import { AlumniRecord } from "@/types";
 import { Home, Search, Database } from "lucide-react";
-import { parseAlumniCSV, filterAlumni, getUniqueDecades, getAlumniStats } from "@/lib/csvParser";
+import { parseAlumniCSV, filterAlumni, getUniqueDecades, getUniqueYears, getUniqueRoles, getAlumniStats } from "@/lib/csvParser";
 import { loadDefaultAlumniCSV } from "@/lib/loadDefaultCSV";
 import { validateCSVData, ValidationReport } from "@/lib/csvValidator";
 import { toast } from "sonner";
@@ -26,9 +26,25 @@ interface AlumniRoomProps {
 }
 
 export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
+  // Filter mode state
+  const [filterMode, setFilterMode] = useState<'decade' | 'year'>('decade');
+  
+  // Time period filters
   const [selectedDecade, setSelectedDecade] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  
+  // Role filters
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [showOnlyLeadership, setShowOnlyLeadership] = useState(false);
+  
+  // Additional filters
+  const [showOnlyWithPhotos, setShowOnlyWithPhotos] = useState(false);
+  
+  // Search and selection
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAlumnus, setSelectedAlumnus] = useState<AlumniRecord | null>(null);
+  
+  // Data state
   const [alumniData, setAlumniData] = useState<AlumniRecord[]>(sampleAlumni);
   const [isLoading, setIsLoading] = useState(false);
   const [csvFileName, setCsvFileName] = useState<string | undefined>(undefined);
@@ -111,23 +127,42 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
     toast.info('Import cancelled');
   };
 
-  // Extract unique decades
-  const decades = useMemo(() => {
-    return getUniqueDecades(alumniData);
-  }, [alumniData]);
+  // Extract unique values for filters
+  const decades = useMemo(() => getUniqueDecades(alumniData), [alumniData]);
+  const years = useMemo(() => getUniqueYears(alumniData), [alumniData]);
+  const roles = useMemo(() => getUniqueRoles(alumniData), [alumniData]);
 
-  // Filter alumni
+  // Filter alumni with all active filters
   const filteredAlumni = useMemo(() => {
     return filterAlumni(alumniData, {
-      decade: selectedDecade,
-      searchQuery: searchQuery
+      decade: filterMode === 'decade' ? selectedDecade : null,
+      year: filterMode === 'year' ? selectedYear : null,
+      searchQuery: searchQuery,
+      hasPhoto: showOnlyWithPhotos,
+      hasRole: showOnlyLeadership && !selectedRole ? true : undefined,
+      specificRole: selectedRole,
     });
-  }, [alumniData, selectedDecade, searchQuery]);
+  }, [alumniData, filterMode, selectedDecade, selectedYear, searchQuery, showOnlyWithPhotos, showOnlyLeadership, selectedRole]);
 
   // Get statistics
-  const stats = useMemo(() => {
-    return getAlumniStats(alumniData);
-  }, [alumniData]);
+  const stats = useMemo(() => getAlumniStats(alumniData), [alumniData]);
+
+  // Clear all filters
+  const handleClearAllFilters = () => {
+    setFilterMode('decade');
+    setSelectedDecade(null);
+    setSelectedYear(null);
+    setSelectedRole(null);
+    setShowOnlyLeadership(false);
+    setShowOnlyWithPhotos(false);
+  };
+
+  // Handle filter mode change - clear time period filters when switching
+  const handleFilterModeChange = (mode: 'decade' | 'year') => {
+    setFilterMode(mode);
+    setSelectedDecade(null);
+    setSelectedYear(null);
+  };
 
   return (
     <div className="kiosk-container min-h-screen p-8">
@@ -193,13 +228,25 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
           </div>
         </div>
 
-        {/* Decade Filter */}
+        {/* Advanced Filters */}
         <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">Filter by Decade</h2>
-          <DecadeFilter
+          <AdvancedFilters
+            filterMode={filterMode}
+            onFilterModeChange={handleFilterModeChange}
             decades={decades}
             selectedDecade={selectedDecade}
             onSelectDecade={setSelectedDecade}
+            years={years}
+            selectedYear={selectedYear}
+            onSelectYear={setSelectedYear}
+            roles={roles}
+            selectedRole={selectedRole}
+            onSelectRole={setSelectedRole}
+            showOnlyLeadership={showOnlyLeadership}
+            onToggleLeadership={setShowOnlyLeadership}
+            showOnlyWithPhotos={showOnlyWithPhotos}
+            onTogglePhotos={setShowOnlyWithPhotos}
+            onClearAll={handleClearAllFilters}
           />
         </div>
 
