@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
+import { usePDFGestures } from "@/hooks/usePDFGestures";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -31,6 +32,7 @@ export function PDFViewer({ pdfUrl, title, onClose, className }: PDFViewerProps)
   const [scale, setScale] = useState(1.0);
   const [isLoading, setIsLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
@@ -67,9 +69,28 @@ export function PDFViewer({ pdfUrl, title, onClose, className }: PDFViewerProps)
     setScale(prev => Math.max(prev - 0.25, 0.5));
   }
 
+  function handleZoomGesture(delta: number) {
+    setScale(prev => Math.max(0.5, Math.min(prev + delta, 3.0)));
+  }
+
+  function fitPage() {
+    setScale(1.0);
+  }
+
   function toggleFullscreen() {
     setIsFullscreen(!isFullscreen);
   }
+
+  const { attachGestures } = usePDFGestures(containerRef, {
+    onZoom: handleZoomGesture,
+    onNextPage: nextPage,
+    onPreviousPage: previousPage,
+    onFitPage: fitPage,
+  });
+
+  useEffect(() => {
+    return attachGestures();
+  }, [attachGestures]);
 
   return (
     <div
@@ -164,7 +185,10 @@ export function PDFViewer({ pdfUrl, title, onClose, className }: PDFViewerProps)
       </div>
 
       {/* PDF Document Area */}
-      <div className="flex-1 overflow-auto bg-muted/30 p-8">
+      <div 
+        ref={containerRef}
+        className="flex-1 overflow-auto bg-muted/30 p-8 touch-none"
+      >
         <div className="flex justify-center">
           {isLoading && (
             <Card className="p-12">
