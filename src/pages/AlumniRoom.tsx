@@ -1,11 +1,16 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { AlumniGrid } from "@/components/AlumniGrid";
 import { DecadeFilter } from "@/components/DecadeFilter";
+import { CSVUploader } from "@/components/CSVUploader";
+import { AlumniStats } from "@/components/AlumniStats";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { sampleAlumni } from "@/lib/sampleData";
 import { AlumniRecord } from "@/types";
-import { Home, Search } from "lucide-react";
+import { Home, Search, Database } from "lucide-react";
+import { parseAlumniCSV, filterAlumni, getUniqueDecades, getAlumniStats } from "@/lib/csvParser";
+import { loadDefaultAlumniCSV } from "@/lib/loadDefaultCSV";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -21,32 +26,60 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
   const [selectedDecade, setSelectedDecade] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAlumnus, setSelectedAlumnus] = useState<AlumniRecord | null>(null);
+  const [alumniData, setAlumniData] = useState<AlumniRecord[]>(sampleAlumni);
+  const [isLoading, setIsLoading] = useState(false);
+  const [csvFileName, setCsvFileName] = useState<string | undefined>(undefined);
+  const [showUploader, setShowUploader] = useState(false);
+
+  // Load default CSV on mount
+  useEffect(() => {
+    const loadDefault = async () => {
+      try {
+        const defaultAlumni = await loadDefaultAlumniCSV();
+        setAlumniData(defaultAlumni);
+        setCsvFileName('sample-alumni.csv (default)');
+      } catch (error) {
+        console.error('Failed to load default CSV, using sample data:', error);
+        // Keep using sampleAlumni as fallback
+      }
+    };
+    loadDefault();
+  }, []);
+
+  // Handle CSV file upload
+  const handleCSVUpload = async (file: File) => {
+    setIsLoading(true);
+    try {
+      const parsedAlumni = await parseAlumniCSV(file);
+      setAlumniData(parsedAlumni);
+      setCsvFileName(file.name);
+      setShowUploader(false);
+      toast.success(`Successfully loaded ${parsedAlumni.length} alumni records`);
+    } catch (error) {
+      toast.error(`Failed to parse CSV: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('CSV parsing error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Extract unique decades
   const decades = useMemo(() => {
-    const uniqueDecades = [...new Set(sampleAlumni.map(a => a.decade))];
-    return uniqueDecades.sort();
-  }, []);
+    return getUniqueDecades(alumniData);
+  }, [alumniData]);
 
   // Filter alumni
   const filteredAlumni = useMemo(() => {
-    return sampleAlumni.filter(alumnus => {
-      // Decade filter
-      if (selectedDecade && alumnus.decade !== selectedDecade) return false;
-      
-      // Search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        return (
-          alumnus.full_name.toLowerCase().includes(query) ||
-          alumnus.class_role?.toLowerCase().includes(query) ||
-          alumnus.grad_year.toString().includes(query)
-        );
-      }
-      
-      return true;
+    return filterAlumni(alumniData, {
+      decade: selectedDecade,
+      searchQuery: searchQuery
     });
-  }, [selectedDecade, searchQuery]);
+  }, [alumniData, selectedDecade, searchQuery]);
+
+  // Get statistics
+  const stats = useMemo(() => {
+    return getAlumniStats(alumniData);
+  }, [alumniData]);
 
   return (
     <div className="kiosk-container min-h-screen p-8">
@@ -57,13 +90,34 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
             <h1 className="text-5xl font-bold mb-2">Alumni Records</h1>
             <p className="text-xl text-muted-foreground">
               {filteredAlumni.length} {filteredAlumni.length === 1 ? 'alumnus' : 'alumni'} found
+              {csvFileName && <span className="ml-2 text-sm">• {csvFileName}</span>}
             </p>
           </div>
-          <Button variant="kiosk" size="touch" onClick={onNavigateHome}>
-            <Home className="w-6 h-6 mr-2" />
-            Home
-          </Button>
+          <div className="flex gap-3">
+            <Button variant="outline" size="touch" onClick={() => setShowUploader(!showUploader)}>
+              <Database className="w-6 h-6 mr-2" />
+              Load CSV
+            </Button>
+            <Button variant="kiosk" size="touch" onClick={onNavigateHome}>
+              <Home className="w-6 h-6 mr-2" />
+              Home
+            </Button>
+          </div>
         </div>
+
+        {/* CSV Uploader */}
+        {showUploader && (
+          <div className="mb-8">
+            <CSVUploader
+              onFileSelect={handleCSVUpload}
+              isLoading={isLoading}
+              fileName={csvFileName}
+            />
+          </div>
+        )}
+
+        {/* Statistics */}
+        <AlumniStats stats={stats} />
 
         {/* Search Bar */}
         <div className="mb-6">
