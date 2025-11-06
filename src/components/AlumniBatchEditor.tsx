@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { AlumniRecord } from "@/types";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { validateBulkChanges } from "@/lib/batchEditValidator";
@@ -69,7 +69,6 @@ export function AlumniBatchEditor({
   roles,
   onSave
 }: AlumniBatchEditorProps) {
-  const [editMode, setEditMode] = useState(true);
   const [localChanges, setLocalChanges] = useState<Map<string, Partial<AlumniRecord>>>(new Map());
   
   // Sorting state
@@ -134,12 +133,21 @@ export function AlumniBatchEditor({
   };
 
   // Get records to display with filtering and sorting
+  const getCurrentValue = useCallback(<K extends keyof AlumniRecord>(record: AlumniRecord, field: K): AlumniRecord[K] => {
+    const changes = localChanges.get(record.id);
+    if (changes && field in changes) {
+      return changes[field] as AlumniRecord[K];
+    }
+
+    return record[field];
+  }, [localChanges]);
+
   const displayRecords = useMemo(() => {
     let records = alumniData.filter(a => selectedRecords.has(a.id));
-    
+
     // Apply filters
     if (filters.full_name) {
-      records = records.filter(r => 
+      records = records.filter(r =>
         getCurrentValue(r, 'full_name').toLowerCase().includes(filters.full_name.toLowerCase())
       );
     }
@@ -186,7 +194,7 @@ export function AlumniBatchEditor({
     }
     
     return records;
-  }, [alumniData, selectedRecords, filters, sortColumn, sortDirection, localChanges]);
+  }, [alumniData, selectedRecords, filters, sortColumn, sortDirection, getCurrentValue]);
 
   // Validation
   const validation = useMemo(() => {
@@ -194,33 +202,39 @@ export function AlumniBatchEditor({
   }, [localChanges, alumniData]);
 
   // Handle cell change
-  const handleCellChange = (recordId: string, field: keyof AlumniRecord, value: any) => {
+  const handleCellChange = (
+    recordId: string,
+    field: keyof AlumniRecord,
+    value: AlumniRecord[keyof AlumniRecord] | null,
+  ) => {
     const newChanges = new Map(localChanges);
-    const existing = newChanges.get(recordId) || {};
-    
+    const existing: Partial<AlumniRecord> = {
+      ...(newChanges.get(recordId) ?? {}),
+    };
+
     // Special handling for full_name - update first/last name
     if (field === 'full_name') {
-      const parts = value.split(' ');
+      const nameValue = typeof value === 'string' ? value : '';
+      const parts = nameValue.split(' ');
       existing.first_name = parts[0] || '';
       existing.last_name = parts[parts.length - 1] || '';
-      existing.full_name = value;
+      existing.full_name = nameValue;
+    } else if (value === null) {
+      delete existing[field];
     } else {
-      (existing as any)[field] = value;
+      existing[field] = value as AlumniRecord[keyof AlumniRecord];
     }
-    
+
     // Update decade if year changes
     if (field === 'grad_year') {
-      existing.decade = `${Math.floor(value / 10) * 10}s`;
+      const gradYear = typeof value === 'number' ? value : Number(value ?? existing.grad_year);
+      if (!Number.isNaN(gradYear)) {
+        existing.decade = `${Math.floor(gradYear / 10) * 10}s`;
+      }
     }
-    
+
     newChanges.set(recordId, existing);
     setUndoableChanges(newChanges);
-  };
-
-  // Get current value (with changes applied)
-  const getCurrentValue = (record: AlumniRecord, field: keyof AlumniRecord) => {
-    const changes = localChanges.get(record.id);
-    return changes && field in changes ? (changes as any)[field] : record[field];
   };
 
   // Check if field is modified
@@ -230,7 +244,17 @@ export function AlumniBatchEditor({
   };
 
   // Handle save
-  const handleSave = () => {
+  const handleClose = useCallback(() => {
+    if (localChanges.size > 0) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to close?');
+      if (!confirmed) return;
+    }
+    reset();
+    setLocalChanges(new Map());
+    onClose();
+  }, [localChanges, onClose, reset]);
+
+  const handleSave = useCallback(() => {
     if (!validation.valid) {
       toast.error(`Cannot save: ${validation.issues.length} validation errors`);
       return;
@@ -239,10 +263,10 @@ export function AlumniBatchEditor({
     onSave(localChanges);
     toast.success(`Successfully updated ${localChanges.size} records`);
     handleClose();
-  };
+  }, [validation, onSave, localChanges, handleClose]);
 
   // Handle export
-  const handleExport = () => {
+  const handleExport = useCallback(() => {
     // Apply changes to data
     const updatedData = alumniData.map(record => {
       const changes = localChanges.get(record.id);
@@ -250,24 +274,13 @@ export function AlumniBatchEditor({
     });
     exportAlumniToCSV(updatedData, 'alumni-batch-edited.csv');
     toast.success('Exported updated data to CSV');
-  };
+  }, [alumniData, localChanges]);
 
   // Handle export changes only
-  const handleExportChanges = () => {
+  const handleExportChanges = useCallback(() => {
     exportChangesOnly(alumniData, localChanges);
     toast.success('Exported changes to CSV');
-  };
-
-  // Handle close with confirmation
-  const handleClose = () => {
-    if (localChanges.size > 0) {
-      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to close?');
-      if (!confirmed) return;
-    }
-    reset();
-    setLocalChanges(new Map());
-    onClose();
-  };
+  }, [alumniData, localChanges]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -293,7 +306,7 @@ export function AlumniBatchEditor({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, localChanges, canUndo, canRedo]);
+  }, [open, handleSave, undo, redo, handleClose]);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>

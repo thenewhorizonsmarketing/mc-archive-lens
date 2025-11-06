@@ -7,8 +7,8 @@ export interface ValidationResult {
 }
 
 export function validateAlumniEdit(
-  field: keyof AlumniRecord, 
-  value: any, 
+  field: keyof AlumniRecord,
+  value: AlumniRecord[keyof AlumniRecord] | undefined,
   record: AlumniRecord
 ): ValidationResult {
   const result: ValidationResult = {
@@ -18,31 +18,34 @@ export function validateAlumniEdit(
   };
   
   switch (field) {
-    case 'grad_year':
-      const year = parseInt(value);
-      if (isNaN(year)) {
+    case 'grad_year': {
+      const year = typeof value === 'number' ? value : Number(value);
+      if (Number.isNaN(year)) {
         result.isValid = false;
         result.errors.push('Year must be a number');
       } else if (year < 1900 || year > 2030) {
         result.warnings.push('Unusual year - please verify');
       }
       break;
-      
-    case 'grad_date':
-      if (value && !/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(value)) {
+    }
+
+    case 'grad_date': {
+      const dateValue = typeof value === 'string' ? value : '';
+      if (dateValue && !/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(dateValue)) {
         result.isValid = false;
         result.errors.push('Date must be in M/D/YYYY format');
       }
       break;
-      
+    }
+
     case 'first_name':
     case 'last_name':
-      if (!value || value.trim().length === 0) {
+      if (typeof value !== 'string' || value.trim().length === 0) {
         result.isValid = false;
         result.errors.push('Name cannot be empty');
       }
       break;
-      
+
     case 'tags':
       if (Array.isArray(value) && value.length > 10) {
         result.warnings.push('More than 10 tags - consider consolidating');
@@ -63,8 +66,11 @@ export function validateBulkChanges(
     const original = originalData.find(a => a.id === id);
     if (!original) return;
     
-    Object.entries(updates).forEach(([field, value]) => {
-      const validation = validateAlumniEdit(field as keyof AlumniRecord, value, original);
+    (Object.entries(updates) as Array<[
+      keyof AlumniRecord,
+      AlumniRecord[keyof AlumniRecord] | undefined
+    ]>).forEach(([field, value]) => {
+      const validation = validateAlumniEdit(field, value, original);
       if (!validation.isValid) {
         validation.errors.forEach(error => {
           issues.push({ id, field, message: error });

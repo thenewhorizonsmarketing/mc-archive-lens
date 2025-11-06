@@ -180,19 +180,25 @@ export function updateAlumniWithPhotos(
   photoMatches: PhotoMatch[]
 ): AlumniRecord[] {
   const updatedAlumni = [...alumni];
-  
+
   photoMatches.forEach(match => {
     if (match.matchedAlumni) {
       const index = updatedAlumni.findIndex(a => a.id === match.matchedAlumni!.id);
       if (index !== -1) {
+        const previousUploadedUrl = updatedAlumni[index].uploaded_photo_url;
+        if (previousUploadedUrl && previousUploadedUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(previousUploadedUrl);
+        }
+
         updatedAlumni[index] = {
           ...updatedAlumni[index],
           photo_file: match.suggestedFilename,
-          composite_image_path: `/photos/${updatedAlumni[index].grad_year}/${match.suggestedFilename}`
+          composite_image_path: `/photos/${updatedAlumni[index].grad_year}/${match.suggestedFilename}`,
+          uploaded_photo_url: match.previewUrl
         };
       }
     }
   });
-  
+
   return updatedAlumni;
 }

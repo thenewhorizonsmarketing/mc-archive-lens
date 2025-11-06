@@ -28,6 +28,10 @@ export const alumniCSVSchema = z.object({
 
 export type AlumniCSVRow = z.infer<typeof alumniCSVSchema>;
 
+export type RawCSVRow = Partial<AlumniCSVRow> & Record<string, unknown>;
+
+const asString = (value: unknown): string => (typeof value === 'string' ? value : '');
+
 export interface ValidationIssue {
   row: number;
   field: string;
@@ -65,18 +69,19 @@ export interface ValidationReport {
 }
 
 // Validate a single CSV row
-function validateRow(row: any, rowIndex: number): ValidationIssue[] {
+function validateRow(row: RawCSVRow, rowIndex: number): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
-  
+
   try {
     alumniCSVSchema.parse(row);
   } catch (error) {
     if (error instanceof z.ZodError) {
       error.errors.forEach((err) => {
+        const key = typeof err.path[0] === 'string' ? err.path[0] : '';
         issues.push({
           row: rowIndex + 1,
           field: err.path.join('.'),
-          value: row[err.path[0]] || '',
+          value: key ? asString(row[key]) : '',
           issue: err.message,
           severity: 'error'
         });
@@ -127,14 +132,17 @@ function checkPhotoPath(path: string, rowIndex: number): PhotoPathIssue | null {
 }
 
 // Find duplicate entries
-function findDuplicates(rows: any[]): DuplicateEntry[] {
+function findDuplicates(rows: RawCSVRow[]): DuplicateEntry[] {
   const seen = new Map<string, number[]>();
-  
+
   rows.forEach((row, index) => {
-    if (!row.first_name || !row.last_name || !row.grad_year) return;
-    
-    const key = `${row.first_name.trim().toLowerCase()}_${row.last_name.trim().toLowerCase()}_${row.grad_year.trim()}`;
-    
+    const firstName = asString(row.first_name);
+    const lastName = asString(row.last_name);
+    const gradYear = asString(row.grad_year);
+    if (!firstName || !lastName || !gradYear) return;
+
+    const key = `${firstName.trim().toLowerCase()}_${lastName.trim().toLowerCase()}_${gradYear.trim()}`;
+
     if (!seen.has(key)) {
       seen.set(key, []);
     }
@@ -157,7 +165,7 @@ function findDuplicates(rows: any[]): DuplicateEntry[] {
 }
 
 // Main validation function
-export function validateCSVData(rows: any[]): ValidationReport {
+export function validateCSVData(rows: RawCSVRow[]): ValidationReport {
   const issues: ValidationIssue[] = [];
   const photoPathIssues: PhotoPathIssue[] = [];
   const missingFields = {
@@ -170,7 +178,8 @@ export function validateCSVData(rows: any[]): ValidationReport {
   // Validate each row
   rows.forEach((row, index) => {
     // Check for missing critical fields
-    if (!row.first_name || !row.first_name.trim()) {
+    const firstName = asString(row.first_name);
+    if (!firstName.trim()) {
       missingFields.first_name++;
       issues.push({
         row: index + 1,
@@ -180,8 +189,9 @@ export function validateCSVData(rows: any[]): ValidationReport {
         severity: 'error'
       });
     }
-    
-    if (!row.last_name || !row.last_name.trim()) {
+
+    const lastName = asString(row.last_name);
+    if (!lastName.trim()) {
       missingFields.last_name++;
       issues.push({
         row: index + 1,
@@ -191,8 +201,9 @@ export function validateCSVData(rows: any[]): ValidationReport {
         severity: 'error'
       });
     }
-    
-    if (!row.grad_year || !row.grad_year.trim()) {
+
+    const gradYear = asString(row.grad_year);
+    if (!gradYear.trim()) {
       missingFields.grad_year++;
       issues.push({
         row: index + 1,
@@ -202,8 +213,9 @@ export function validateCSVData(rows: any[]): ValidationReport {
         severity: 'error'
       });
     }
-    
-    if (!row.grad_date || !row.grad_date.trim()) {
+
+    const gradDate = asString(row.grad_date);
+    if (!gradDate.trim()) {
       missingFields.grad_date++;
       issues.push({
         row: index + 1,
@@ -213,14 +225,15 @@ export function validateCSVData(rows: any[]): ValidationReport {
         severity: 'error'
       });
     }
-    
+
     // Validate row structure
     const rowIssues = validateRow(row, index);
     issues.push(...rowIssues);
-    
+
     // Check photo path
-    if (row.photo_file) {
-      const photoIssue = checkPhotoPath(row.photo_file, index);
+    const photoPath = asString(row.photo_file);
+    if (photoPath) {
+      const photoIssue = checkPhotoPath(photoPath, index);
       if (photoIssue) {
         photoPathIssues.push(photoIssue);
       }

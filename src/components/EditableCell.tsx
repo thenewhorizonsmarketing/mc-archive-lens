@@ -1,22 +1,24 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type KeyboardEvent } from "react";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Badge } from "./ui/badge";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+type EditableValue = string | number | string[] | null | undefined;
+
 interface EditableCellProps {
-  value: any;
+  value: EditableValue;
   type: 'text' | 'number' | 'select' | 'tags';
   options?: string[];
-  onChange: (newValue: any) => void;
+  onChange: (newValue: EditableValue) => void;
   onBlur?: () => void;
-  validation?: (value: any) => string | null;
+  validation?: (value: EditableValue) => string | null;
   isModified?: boolean;
   className?: string;
 }
 
-export function EditableCell({ 
+export function EditableCell({
   value, 
   type, 
   options = [], 
@@ -27,7 +29,7 @@ export function EditableCell({
   className 
 }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [localValue, setLocalValue] = useState(value);
+  const [localValue, setLocalValue] = useState<EditableValue>(value);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -62,7 +64,7 @@ export function EditableCell({
     setError(null);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSave();
     } else if (e.key === 'Escape') {
@@ -97,7 +99,7 @@ export function EditableCell({
   // Select type
   if (type === 'select' && !isEditing) {
     return (
-      <Select value={localValue || "__none__"} onValueChange={(val) => {
+      <Select value={(localValue as string) || "__none__"} onValueChange={(val) => {
         const newValue = val === "__none__" ? "" : val;
         setLocalValue(newValue);
         onChange(newValue);
@@ -127,8 +129,21 @@ export function EditableCell({
       <Input
         ref={inputRef}
         type={type === 'number' ? 'number' : 'text'}
-        value={localValue}
-        onChange={(e) => setLocalValue(type === 'number' ? parseInt(e.target.value) : e.target.value)}
+        value={
+          type === 'number'
+            ? typeof localValue === 'number'
+              ? localValue
+              : localValue ?? ''
+            : (localValue as string | undefined | null) ?? ''
+        }
+        onChange={(e) => {
+          if (type === 'number') {
+            const parsed = e.target.value === '' ? null : Number(e.target.value);
+            setLocalValue(Number.isNaN(parsed) ? null : parsed);
+          } else {
+            setLocalValue(e.target.value);
+          }
+        }}
         onBlur={handleSave}
         onKeyDown={handleKeyDown}
         className={cn(

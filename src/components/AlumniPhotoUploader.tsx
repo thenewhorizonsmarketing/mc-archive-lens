@@ -67,24 +67,9 @@ export function AlumniPhotoUploader({ alumniData, onComplete, onCancel }: Alumni
     }));
   }, [alumniData]);
   
-  const handleApplyChanges = useCallback(async () => {
-    // Update alumni records
-    const updatedAlumni = updateAlumniWithPhotos(alumniData, photoMatches);
-    
-    // Download photos with correct filenames
-    await handleDownloadOrganizedPhotos();
-    
-    onComplete(updatedAlumni);
-    
-    toast({
-      title: "Photos Updated",
-      description: `Successfully updated ${photoMatches.filter(m => m.matchedAlumni).length} alumni records with photos.`,
-    });
-  }, [alumniData, photoMatches, onComplete, toast]);
-  
-  const handleDownloadOrganizedPhotos = async () => {
+  const handleDownloadOrganizedPhotos = useCallback(async () => {
     sonnerToast.info('Starting photo downloads...', { duration: 2000 });
-    
+
     for (const match of photoMatches) {
       if (!match.matchedAlumni) continue;
       
@@ -102,11 +87,26 @@ export function AlumniPhotoUploader({ alumniData, onComplete, onCancel }: Alumni
       // Small delay to prevent browser from blocking multiple downloads
       await new Promise(resolve => setTimeout(resolve, 300));
     }
-    
+
     sonnerToast.success('Photos downloaded! Organize them into year folders in public/photos/', {
       duration: 5000,
     });
-  };
+  }, [photoMatches]);
+
+  const handleApplyChanges = useCallback(async () => {
+    // Update alumni records
+    const updatedAlumni = updateAlumniWithPhotos(alumniData, photoMatches);
+
+    // Download photos with correct filenames
+    await handleDownloadOrganizedPhotos();
+
+    onComplete(updatedAlumni);
+
+    toast({
+      title: "Photos Updated",
+      description: `Successfully updated ${photoMatches.filter(m => m.matchedAlumni).length} alumni records with photos.`,
+    });
+  }, [alumniData, photoMatches, onComplete, toast, handleDownloadOrganizedPhotos]);
   
   const stats = {
     total: photoMatches.length,

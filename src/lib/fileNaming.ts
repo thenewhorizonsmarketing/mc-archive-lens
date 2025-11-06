@@ -13,7 +13,7 @@ export interface PhotoNamingOptions {
  */
 export function sanitizeFilename(filename: string): string {
   return filename
-    .replace(/['"\/\\:*?<>|]/g, '') // Remove problematic characters
+    .replace(/['"/\\:*?<>|]/g, '') // Remove problematic characters
     .replace(/\s+/g, '_') // Replace spaces with underscores
     .replace(/_{2,}/g, '_') // Replace multiple underscores with single
     .replace(/^_+|_+$/g, '') // Trim leading/trailing underscores

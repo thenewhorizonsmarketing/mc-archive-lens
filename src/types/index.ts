@@ -13,6 +13,13 @@ export interface AlumniRecord {
   grad_date: string;
   photo_file?: string;
   composite_image_path: string;
+  /**
+   * When photos are uploaded through the kiosk interface we create an object URL so the
+   * newly matched photo can be displayed immediately. This keeps the original
+   * `photo_file`/`composite_image_path` metadata intact for export while allowing the UI
+   * to render the uploaded image right away.
+   */
+  uploaded_photo_url?: string;
   portrait_path?: string;
   sort_key: string;
   decade: string;
@@ -100,7 +107,7 @@ export interface AppState {
 
 export interface AnalyticsEvent {
   timestamp: string;
-  event_type: 'room_opened' | 'search_performed' | 'publication_viewed' | 
+  event_type: 'room_opened' | 'search_performed' | 'publication_viewed' |
               'alumni_viewed' | 'photo_viewed' | 'idle_reset';
   details: {
     room?: string;
@@ -108,6 +115,5 @@ export interface AnalyticsEvent {
     alumni_id?: string;
     publication_id?: string;
     search_query?: string;
-    [key: string]: any;
-  };
+  } & Record<string, unknown>;
 }

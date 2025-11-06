@@ -6,7 +6,11 @@ import { AlumniRecord } from "@/types";
  */
 export function getPhotoUrl(alumnus: AlumniRecord): string | null {
   if (!alumnus.photo_file) return null;
-  
+
+  if (alumnus.uploaded_photo_url) {
+    return alumnus.uploaded_photo_url;
+  }
+
   // If it's already a full URL, return it
   if (alumnus.photo_file.startsWith('http')) {
     return alumnus.photo_file;

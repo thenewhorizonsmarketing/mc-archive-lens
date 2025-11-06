@@ -20,7 +20,7 @@ import { Home, Search, Database, ImagePlus, LayoutGrid, Images, Edit3, CheckSqua
 import { parseAlumniCSV, filterAlumni, getUniqueDecades, getUniqueYears, getUniqueRoles, getAlumniStats } from "@/lib/csvParser";
 import { getPhotoUrl } from "@/lib/imageUtils";
 import { loadDefaultAlumniCSV } from "@/lib/loadDefaultCSV";
-import { validateCSVData, ValidationReport } from "@/lib/csvValidator";
+import { validateCSVData, type ValidationReport, type RawCSVRow } from "@/lib/csvValidator";
 import { usePhotoGestures } from "@/hooks/usePhotoGestures";
 import { exportAlumniToCSV } from "@/lib/csvExporter";
 import { toast } from "sonner";
@@ -93,13 +93,13 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
     
     try {
       // Parse CSV to get raw data for validation
-      const result = await new Promise<any[]>((resolve, reject) => {
-        Papa.parse(file, {
+      const result = await new Promise<RawCSVRow[]>((resolve, reject) => {
+        Papa.parse<RawCSVRow>(file, {
           header: true,
           skipEmptyLines: true,
           dynamicTyping: false,
           transformHeader: (header) => header.trim().toLowerCase(),
-          complete: (results) => resolve(results.data),
+          complete: (results) => resolve(results.data as RawCSVRow[]),
           error: (error) => reject(error)
         });
       });
@@ -194,6 +194,10 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
   // Handle photo upload completion
   const handlePhotoUploadComplete = (updatedAlumni: AlumniRecord[]) => {
     setAlumniData(updatedAlumni);
+    setSelectedAlumnus(prev => {
+      if (!prev) return null;
+      return updatedAlumni.find(a => a.id === prev.id) ?? null;
+    });
     setShowPhotoUploader(false);
   };
 

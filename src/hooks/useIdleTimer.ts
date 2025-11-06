@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface UseIdleTimerOptions {
   timeout: number; // in milliseconds
@@ -10,19 +10,19 @@ export function useIdleTimer({ timeout, onIdle, enabled = true }: UseIdleTimerOp
   const [isIdle, setIsIdle] = useState(false);
   const timerRef = useRef<NodeJS.Timeout>();
 
-  const resetTimer = () => {
+  const resetTimer = useCallback(() => {
     setIsIdle(false);
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
-    
+
     if (enabled) {
       timerRef.current = setTimeout(() => {
         setIsIdle(true);
         onIdle();
       }, timeout);
     }
-  };
+  }, [enabled, onIdle, timeout]);
 
   useEffect(() => {
     if (!enabled) {
@@ -48,7 +48,7 @@ export function useIdleTimer({ timeout, onIdle, enabled = true }: UseIdleTimerOp
         document.removeEventListener(event, resetTimer);
       });
     };
-  }, [timeout, enabled]);
+  }, [timeout, enabled, resetTimer]);
 
   return { isIdle, resetTimer };
 }
