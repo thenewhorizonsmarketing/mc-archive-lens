@@ -17,6 +17,7 @@ import { parseAlumniCSV, filterAlumni, getUniqueDecades, getUniqueYears, getUniq
 import { getPhotoUrl } from "@/lib/imageUtils";
 import { loadDefaultAlumniCSV } from "@/lib/loadDefaultCSV";
 import { validateCSVData, ValidationReport } from "@/lib/csvValidator";
+import { usePhotoGestures } from "@/hooks/usePhotoGestures";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -186,6 +187,35 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
     setShowPhotoUploader(false);
   };
 
+  // Navigation between photos in detail dialog
+  const currentPhotoIndex = useMemo(() => {
+    if (!selectedAlumnus) return -1;
+    return displayedAlumni.findIndex(a => a.id === selectedAlumnus.id);
+  }, [selectedAlumnus, displayedAlumni]);
+
+  const handlePreviousPhoto = () => {
+    if (currentPhotoIndex > 0) {
+      setSelectedAlumnus(displayedAlumni[currentPhotoIndex - 1]);
+      photoGestures.resetZoom();
+    }
+  };
+
+  const handleNextPhoto = () => {
+    if (currentPhotoIndex < displayedAlumni.length - 1) {
+      setSelectedAlumnus(displayedAlumni[currentPhotoIndex + 1]);
+      photoGestures.resetZoom();
+    }
+  };
+
+  // Photo gestures for touch interactions
+  const photoGestures = usePhotoGestures({
+    onSwipeLeft: handleNextPhoto,
+    onSwipeRight: handlePreviousPhoto,
+    minZoom: 1,
+    maxZoom: 4,
+    enabled: !!selectedAlumnus,
+  });
+
   return (
     <div className="kiosk-container min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
@@ -335,59 +365,130 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
           </div>
         )}
 
-        {/* Detail Dialog */}
-        <Dialog open={!!selectedAlumnus} onOpenChange={() => setSelectedAlumnus(null)}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        {/* Detail Dialog with Photo Gestures */}
+        <Dialog open={!!selectedAlumnus} onOpenChange={() => {
+          setSelectedAlumnus(null);
+          photoGestures.resetZoom();
+        }}>
+          <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden p-0">
             {selectedAlumnus && (
-              <>
-                {/* Photo Section */}
+              <div className="flex flex-col h-full">
+                {/* Photo Section with Gestures */}
                 {getPhotoUrl(selectedAlumnus) && (
-                  <div className="mb-6 -mx-6 -mt-6">
-                    <img
-                      src={getPhotoUrl(selectedAlumnus)!}
-                      alt={selectedAlumnus.full_name}
-                      className="w-full h-[400px] object-cover"
-                    />
+                  <div 
+                    ref={photoGestures.containerRef}
+                    className="relative bg-black overflow-hidden touch-none select-none"
+                    style={{ height: '60vh' }}
+                  >
+                    {/* Photo with Transform */}
+                    <div
+                      ref={photoGestures.imageRef}
+                      className="w-full h-full flex items-center justify-center transition-transform duration-200 ease-out"
+                      style={{
+                        transform: photoGestures.transform,
+                        cursor: photoGestures.gestureState.scale > 1 ? 'move' : 'default',
+                      }}
+                    >
+                      <img
+                        src={getPhotoUrl(selectedAlumnus)!}
+                        alt={selectedAlumnus.full_name}
+                        className="max-w-full max-h-full object-contain pointer-events-none"
+                        draggable={false}
+                      />
+                    </div>
+
+                    {/* Navigation Arrows - Only show when not zoomed */}
+                    {photoGestures.gestureState.scale === 1 && (
+                      <>
+                        {currentPhotoIndex > 0 && (
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 border-white/20 text-white z-10"
+                            onClick={handlePreviousPhoto}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                          </Button>
+                        )}
+                        {currentPhotoIndex < displayedAlumni.length - 1 && (
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 border-white/20 text-white z-10"
+                            onClick={handleNextPhoto}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                          </Button>
+                        )}
+                      </>
+                    )}
+
+                    {/* Zoom Indicator */}
+                    {photoGestures.gestureState.scale > 1 && (
+                      <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+                        {Math.round(photoGestures.gestureState.scale * 100)}%
+                      </div>
+                    )}
+
+                    {/* Help Text */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-xs opacity-70">
+                      {photoGestures.gestureState.scale === 1 
+                        ? 'Double tap to zoom • Swipe to navigate'
+                        : 'Drag to pan • Pinch to zoom out'
+                      }
+                    </div>
+
+                    {/* Photo Counter */}
+                    <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+                      {currentPhotoIndex + 1} / {displayedAlumni.length}
+                    </div>
                   </div>
                 )}
                 
-                <DialogHeader>
-                  <DialogTitle className="text-3xl">{selectedAlumnus.full_name}</DialogTitle>
-                </DialogHeader>
-                
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-lg font-semibold text-muted-foreground">
-                      Class of {selectedAlumnus.grad_year}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Graduated: {selectedAlumnus.grad_date}
-                    </p>
-                  </div>
+                {/* Info Section - Scrollable */}
+                <div className="p-6 overflow-y-auto flex-1">
+                  <DialogHeader>
+                    <DialogTitle className="text-3xl">{selectedAlumnus.full_name}</DialogTitle>
+                  </DialogHeader>
                   
-                  {selectedAlumnus.class_role && (
+                  <div className="space-y-4 mt-4">
                     <div>
-                      <h3 className="font-semibold mb-2">Leadership Role</h3>
-                      <p className="text-lg">{selectedAlumnus.class_role}</p>
-                    </div>
-                  )}
-                  
-                  {selectedAlumnus.photo_file && (
-                    <div>
-                      <h3 className="font-semibold mb-2">Photo Information</h3>
+                      <p className="text-lg font-semibold text-muted-foreground">
+                        Class of {selectedAlumnus.grad_year}
+                      </p>
                       <p className="text-sm text-muted-foreground">
-                        Filename: {selectedAlumnus.photo_file}
+                        Graduated: {selectedAlumnus.grad_date}
                       </p>
                     </div>
-                  )}
-                  
-                  <div className="pt-4 border-t">
-                    <p className="text-sm text-muted-foreground">
-                      Part of the {selectedAlumnus.decade} graduating classes
-                    </p>
+                    
+                    {selectedAlumnus.class_role && (
+                      <div>
+                        <h3 className="font-semibold mb-2">Leadership Role</h3>
+                        <p className="text-lg">{selectedAlumnus.class_role}</p>
+                      </div>
+                    )}
+                    
+                    {selectedAlumnus.photo_file && (
+                      <div>
+                        <h3 className="font-semibold mb-2">Photo Information</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Filename: {selectedAlumnus.photo_file}
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div className="pt-4 border-t">
+                      <p className="text-sm text-muted-foreground">
+                        Part of the {selectedAlumnus.decade} graduating classes
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </>
+              </div>
             )}
           </DialogContent>
         </Dialog>
