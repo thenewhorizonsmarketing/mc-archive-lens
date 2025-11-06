@@ -1,4 +1,5 @@
 import { RoomCard } from "@/components/RoomCard";
+import { DatabaseExporter } from "@/components/DatabaseExporter";
 import { Users, BookOpen, Image, UserSquare } from "lucide-react";
 import { RoomType } from "@/types";
 
@@ -12,6 +13,9 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       <div className="max-w-7xl w-full">
         {/* Header */}
         <div className="text-center mb-16">
+          <div className="flex justify-end mb-4">
+            <DatabaseExporter />
+          </div>
           <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             MC Museum & Archives
           </h1>
