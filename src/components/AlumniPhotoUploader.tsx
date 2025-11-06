@@ -4,11 +4,13 @@ import { PhotoMatch, matchPhotosToAlumni, updateAlumniWithPhotos } from "@/lib/p
 import { generateStandardFilename } from "@/lib/fileNaming";
 import { PhotoUploadZone } from "./PhotoUploadZone";
 import { PhotoMatchCard } from "./PhotoMatchCard";
+import { PhotoDragDropMatcher } from "./PhotoDragDropMatcher";
 import { Button } from "./ui/button";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
-import { CheckCircle2, ArrowLeft, ArrowRight, Download, Folder, FolderOpen } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { CheckCircle2, ArrowLeft, ArrowRight, Download, Folder, FolderOpen, List, LayoutGrid } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 
@@ -23,6 +25,7 @@ type Step = 'upload' | 'review' | 'confirm';
 export function AlumniPhotoUploader({ alumniData, onComplete, onCancel }: AlumniPhotoUploaderProps) {
   const [step, setStep] = useState<Step>('upload');
   const [photoMatches, setPhotoMatches] = useState<PhotoMatch[]>([]);
+  const [reviewMode, setReviewMode] = useState<'list' | 'dragdrop'>('dragdrop');
   const { toast } = useToast();
   
   const handleFilesSelected = useCallback((files: File[]) => {
@@ -215,20 +218,43 @@ export function AlumniPhotoUploader({ alumniData, onComplete, onCancel }: Alumni
                 <div className="text-xs">Needs Review</div>
               </div>
             </div>
-            
-            {/* Photo List */}
-            <ScrollArea className="flex-1">
-              <div className="space-y-3 pr-4">
-                {photoMatches.map(match => (
-                  <PhotoMatchCard
-                    key={match.id}
-                    match={match}
-                    alumni={alumniData}
-                    onMatchChange={handleMatchChange}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
+
+            {/* View Mode Toggle */}
+            <Tabs value={reviewMode} onValueChange={(v) => setReviewMode(v as typeof reviewMode)}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="dragdrop" className="gap-2">
+                  <LayoutGrid className="w-4 h-4" />
+                  Drag & Drop
+                </TabsTrigger>
+                <TabsTrigger value="list" className="gap-2">
+                  <List className="w-4 h-4" />
+                  List View
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="dragdrop" className="mt-4">
+                <PhotoDragDropMatcher
+                  photoMatches={photoMatches}
+                  alumni={alumniData}
+                  onMatchChange={handleMatchChange}
+                />
+              </TabsContent>
+
+              <TabsContent value="list" className="mt-4">
+                <ScrollArea className="h-[550px]">
+                  <div className="space-y-3 pr-4">
+                    {photoMatches.map(match => (
+                      <PhotoMatchCard
+                        key={match.id}
+                        match={match}
+                        alumni={alumniData}
+                        onMatchChange={handleMatchChange}
+                      />
+                    ))}
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            </Tabs>
           </div>
         )}
         
