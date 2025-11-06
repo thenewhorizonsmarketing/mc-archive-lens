@@ -86,13 +86,13 @@ export function BulkActionsToolbar({
         {/* Quick Actions */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Set Role */}
-          <Select onValueChange={onBulkSetRole}>
+          <Select onValueChange={(val) => onBulkSetRole(val === "__clear__" ? "" : val)}>
             <SelectTrigger className="w-[180px] h-9">
               <UserCog className="w-4 h-4 mr-2" />
               <SelectValue placeholder="Set Role" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Clear Role</SelectItem>
+              <SelectItem value="__clear__">Clear Role</SelectItem>
               {roles.map((role) => (
                 <SelectItem key={role} value={role}>
                   {role}

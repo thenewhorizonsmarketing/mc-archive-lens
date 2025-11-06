@@ -97,9 +97,10 @@ export function EditableCell({
   // Select type
   if (type === 'select' && !isEditing) {
     return (
-      <Select value={localValue} onValueChange={(val) => {
-        setLocalValue(val);
-        onChange(val);
+      <Select value={localValue || "__none__"} onValueChange={(val) => {
+        const newValue = val === "__none__" ? "" : val;
+        setLocalValue(newValue);
+        onChange(newValue);
       }}>
         <SelectTrigger className={cn(
           "h-8 border-0 focus:ring-1",
@@ -109,7 +110,7 @@ export function EditableCell({
           <SelectValue placeholder="Select..." />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">None</SelectItem>
+          <SelectItem value="__none__">None</SelectItem>
           {options.map((option) => (
             <SelectItem key={option} value={option}>
               {option}
