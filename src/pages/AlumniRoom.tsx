@@ -8,16 +8,21 @@ import { AlumniStats } from "@/components/AlumniStats";
 import { AlumniPhotoUploader } from "@/components/AlumniPhotoUploader";
 import { AlumniPhotoGallery } from "@/components/AlumniPhotoGallery";
 import { PhotoStats } from "@/components/PhotoStats";
+import { BulkActionsToolbar } from "@/components/BulkActionsToolbar";
+import { AlumniBatchEditor } from "@/components/AlumniBatchEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card } from "@/components/ui/card";
 import { sampleAlumni } from "@/lib/sampleData";
 import { AlumniRecord } from "@/types";
-import { Home, Search, Database, ImagePlus, LayoutGrid, Images } from "lucide-react";
+import { Home, Search, Database, ImagePlus, LayoutGrid, Images, Edit3, CheckSquare } from "lucide-react";
 import { parseAlumniCSV, filterAlumni, getUniqueDecades, getUniqueYears, getUniqueRoles, getAlumniStats } from "@/lib/csvParser";
 import { getPhotoUrl } from "@/lib/imageUtils";
 import { loadDefaultAlumniCSV } from "@/lib/loadDefaultCSV";
 import { validateCSVData, ValidationReport } from "@/lib/csvValidator";
 import { usePhotoGestures } from "@/hooks/usePhotoGestures";
+import { exportAlumniToCSV } from "@/lib/csvExporter";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -60,6 +65,11 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
   
   // View mode state
   const [viewMode, setViewMode] = useState<'list' | 'gallery'>('list');
+  
+  // Batch edit mode state
+  const [editMode, setEditMode] = useState(false);
+  const [selectedRecords, setSelectedRecords] = useState<Set<string>>(new Set());
+  const [showBatchEditor, setShowBatchEditor] = useState(false);
 
   // Load default CSV on mount
   useEffect(() => {
@@ -187,6 +197,108 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
     setShowPhotoUploader(false);
   };
 
+  // Batch editing handlers
+  const handleSelectRecord = (id: string) => {
+    setSelectedRecords(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedRecords.size === displayedAlumni.length) {
+      setSelectedRecords(new Set());
+    } else {
+      setSelectedRecords(new Set(displayedAlumni.map(a => a.id)));
+    }
+  };
+
+  const handleBulkSetRole = (role: string) => {
+    const updatedData = alumniData.map(record => 
+      selectedRecords.has(record.id) ? { ...record, class_role: role || undefined } : record
+    );
+    setAlumniData(updatedData);
+    toast.success(`Role updated for ${selectedRecords.size} alumni`);
+  };
+
+  const handleBulkSetYear = (year: number) => {
+    const updatedData = alumniData.map(record => 
+      selectedRecords.has(record.id) 
+        ? { ...record, grad_year: year, decade: `${Math.floor(year / 10) * 10}s` }
+        : record
+    );
+    setAlumniData(updatedData);
+    toast.success(`Year updated for ${selectedRecords.size} alumni`);
+  };
+
+  const handleBulkAddTags = (newTags: string[]) => {
+    const updatedData = alumniData.map(record => 
+      selectedRecords.has(record.id)
+        ? { ...record, tags: [...new Set([...record.tags, ...newTags])] }
+        : record
+    );
+    setAlumniData(updatedData);
+    toast.success(`Tags added to ${selectedRecords.size} alumni`);
+  };
+
+  const handleBulkRemoveTags = (tagsToRemove: string[]) => {
+    const updatedData = alumniData.map(record => 
+      selectedRecords.has(record.id)
+        ? { ...record, tags: record.tags.filter(t => !tagsToRemove.includes(t)) }
+        : record
+    );
+    setAlumniData(updatedData);
+    toast.success(`Tags removed from ${selectedRecords.size} alumni`);
+  };
+
+  const handleBulkClearPhotos = () => {
+    const confirmed = window.confirm(`Clear photo files for ${selectedRecords.size} selected alumni?`);
+    if (!confirmed) return;
+    
+    const updatedData = alumniData.map(record => 
+      selectedRecords.has(record.id)
+        ? { ...record, photo_file: undefined }
+        : record
+    );
+    setAlumniData(updatedData);
+    toast.success(`Photos cleared for ${selectedRecords.size} alumni`);
+  };
+
+  const handleBulkDelete = () => {
+    const confirmed = window.confirm(`Delete ${selectedRecords.size} selected alumni records? This cannot be undone.`);
+    if (!confirmed) return;
+    
+    const updatedData = alumniData.filter(record => !selectedRecords.has(record.id));
+    setAlumniData(updatedData);
+    setSelectedRecords(new Set());
+    toast.success(`Deleted ${selectedRecords.size} alumni records`);
+  };
+
+  const handleBatchEditorSave = (changes: Map<string, Partial<AlumniRecord>>) => {
+    const updatedData = alumniData.map(record => {
+      const change = changes.get(record.id);
+      return change ? { ...record, ...change } : record;
+    });
+    setAlumniData(updatedData);
+    setShowBatchEditor(false);
+  };
+
+  const handleExportSelected = () => {
+    const selectedData = alumniData.filter(a => selectedRecords.has(a.id));
+    exportAlumniToCSV(selectedData, 'alumni-selected.csv');
+    toast.success(`Exported ${selectedRecords.size} records to CSV`);
+  };
+
+  const toggleEditMode = () => {
+    setEditMode(!editMode);
+    setSelectedRecords(new Set());
+  };
+
   // Navigation between photos in detail dialog
   const currentPhotoIndex = useMemo(() => {
     if (!selectedAlumnus) return -1;
@@ -259,6 +371,16 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
                 Gallery
               </Button>
             </div>
+
+            {/* Edit Mode Toggle */}
+            <Button 
+              variant={editMode ? 'default' : 'outline'} 
+              size="touch"
+              onClick={toggleEditMode}
+            >
+              {editMode ? <CheckSquare className="w-6 h-6 mr-2" /> : <Edit3 className="w-6 h-6 mr-2" />}
+              {editMode ? 'Exit Edit' : 'Edit Mode'}
+            </Button>
             
             <Button variant="outline" size="touch" onClick={() => setShowUploader(!showUploader)}>
               <Database className="w-6 h-6 mr-2" />
@@ -319,6 +441,37 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
           </div>
         </div>
 
+        {/* Batch Actions Toolbar */}
+        {editMode && selectedRecords.size > 0 && (
+          <BulkActionsToolbar
+            selectedCount={selectedRecords.size}
+            roles={roles}
+            onBulkSetRole={handleBulkSetRole}
+            onBulkSetYear={handleBulkSetYear}
+            onBulkAddTags={handleBulkAddTags}
+            onBulkRemoveTags={handleBulkRemoveTags}
+            onBulkClearPhotos={handleBulkClearPhotos}
+            onBulkDelete={handleBulkDelete}
+            onClearSelection={() => setSelectedRecords(new Set())}
+            onOpenSpreadsheet={() => setShowBatchEditor(true)}
+            onExport={handleExportSelected}
+          />
+        )}
+
+        {/* Select All in Edit Mode */}
+        {editMode && displayedAlumni.length > 0 && (
+          <div className="mb-4 flex items-center gap-2">
+            <Checkbox
+              checked={selectedRecords.size === displayedAlumni.length && displayedAlumni.length > 0}
+              onCheckedChange={handleSelectAll}
+              id="select-all"
+            />
+            <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+              Select all {displayedAlumni.length} {displayedAlumni.length === 1 ? 'record' : 'records'}
+            </label>
+          </div>
+        )}
+
         {/* Advanced Filters */}
         <div className="mb-8">
           <AdvancedFilters
@@ -343,17 +496,53 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
 
         {/* Content Display - List or Gallery */}
         {displayedAlumni.length > 0 ? (
-          viewMode === 'list' ? (
-            <AlumniGrid
-              alumni={displayedAlumni}
-              onSelect={setSelectedAlumnus}
-            />
-          ) : (
-            <AlumniPhotoGallery
-              alumni={displayedAlumni}
-              onSelect={setSelectedAlumnus}
-            />
-          )
+          <div className="space-y-4">
+            {/* Edit Mode Grid - Show checkboxes */}
+            {editMode ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {displayedAlumni.map((alumnus) => (
+                  <Card
+                    key={alumnus.id}
+                    className="p-4 cursor-pointer hover:shadow-lg transition-all duration-300 relative"
+                  >
+                    <div className="absolute top-4 left-4 z-10">
+                      <Checkbox
+                        checked={selectedRecords.has(alumnus.id)}
+                        onCheckedChange={() => handleSelectRecord(alumnus.id)}
+                        className="bg-background"
+                      />
+                    </div>
+                    <div 
+                      className="ml-8"
+                      onClick={() => handleSelectRecord(alumnus.id)}
+                    >
+                      <h3 className="font-semibold text-lg mb-1">{alumnus.full_name}</h3>
+                      <p className="text-sm text-muted-foreground mb-2">Class of {alumnus.grad_year}</p>
+                      {alumnus.class_role && (
+                        <p className="text-sm">{alumnus.class_role}</p>
+                      )}
+                      {alumnus.photo_file && (
+                        <p className="text-xs text-muted-foreground mt-2">📷 Has photo</p>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              // Normal view mode
+              viewMode === 'list' ? (
+                <AlumniGrid
+                  alumni={displayedAlumni}
+                  onSelect={setSelectedAlumnus}
+                />
+              ) : (
+                <AlumniPhotoGallery
+                  alumni={displayedAlumni}
+                  onSelect={setSelectedAlumnus}
+                />
+              )
+            )}
+          </div>
         ) : (
           <div className="text-center py-20">
             <p className="text-xl text-muted-foreground">
@@ -501,6 +690,16 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
             onCancel={() => setShowPhotoUploader(false)}
           />
         </Dialog>
+
+        {/* Batch Editor Dialog */}
+        <AlumniBatchEditor
+          open={showBatchEditor}
+          onClose={() => setShowBatchEditor(false)}
+          selectedRecords={selectedRecords}
+          alumniData={alumniData}
+          roles={roles}
+          onSave={handleBatchEditorSave}
+        />
       </div>
     </div>
   );
