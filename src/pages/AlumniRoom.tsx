@@ -6,12 +6,15 @@ import { CSVUploader } from "@/components/CSVUploader";
 import { CSVValidationPreview } from "@/components/CSVValidationPreview";
 import { AlumniStats } from "@/components/AlumniStats";
 import { AlumniPhotoUploader } from "@/components/AlumniPhotoUploader";
+import { AlumniPhotoGallery } from "@/components/AlumniPhotoGallery";
+import { PhotoStats } from "@/components/PhotoStats";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { sampleAlumni } from "@/lib/sampleData";
 import { AlumniRecord } from "@/types";
-import { Home, Search, Database, ImagePlus } from "lucide-react";
+import { Home, Search, Database, ImagePlus, LayoutGrid, Images } from "lucide-react";
 import { parseAlumniCSV, filterAlumni, getUniqueDecades, getUniqueYears, getUniqueRoles, getAlumniStats } from "@/lib/csvParser";
+import { getPhotoUrl } from "@/lib/imageUtils";
 import { loadDefaultAlumniCSV } from "@/lib/loadDefaultCSV";
 import { validateCSVData, ValidationReport } from "@/lib/csvValidator";
 import { toast } from "sonner";
@@ -53,6 +56,9 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
   const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [showPhotoUploader, setShowPhotoUploader] = useState(false);
+  
+  // View mode state
+  const [viewMode, setViewMode] = useState<'list' | 'gallery'>('list');
 
   // Load default CSV on mount
   useEffect(() => {
@@ -149,6 +155,14 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
   // Get statistics
   const stats = useMemo(() => getAlumniStats(alumniData), [alumniData]);
 
+  // Display alumni based on view mode
+  const displayedAlumni = useMemo(() => {
+    if (viewMode === 'gallery') {
+      return filteredAlumni.filter(a => a.photo_file);
+    }
+    return filteredAlumni;
+  }, [filteredAlumni, viewMode]);
+
   // Clear all filters
   const handleClearAllFilters = () => {
     setFilterMode('decade');
@@ -180,11 +194,42 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
           <div>
             <h1 className="text-5xl font-bold mb-2">Alumni Records</h1>
             <p className="text-xl text-muted-foreground">
-              {filteredAlumni.length} {filteredAlumni.length === 1 ? 'alumnus' : 'alumni'} found
+              {viewMode === 'gallery' ? (
+                <>
+                  {displayedAlumni.length} {displayedAlumni.length === 1 ? 'photo' : 'photos'} 
+                  <span className="text-sm ml-2">
+                    ({filteredAlumni.length > 0 ? Math.round((displayedAlumni.length / filteredAlumni.length) * 100) : 0}% of filtered alumni)
+                  </span>
+                </>
+              ) : (
+                <>
+                  {displayedAlumni.length} {displayedAlumni.length === 1 ? 'alumnus' : 'alumni'} found
+                </>
+              )}
               {csvFileName && <span className="ml-2 text-sm">• {csvFileName}</span>}
             </p>
           </div>
           <div className="flex gap-3">
+            {/* View Mode Toggle */}
+            <div className="flex gap-2 mr-2">
+              <Button 
+                variant={viewMode === 'list' ? 'kiosk' : 'outline'} 
+                size="touch"
+                onClick={() => setViewMode('list')}
+              >
+                <LayoutGrid className="w-6 h-6 mr-2" />
+                List
+              </Button>
+              <Button 
+                variant={viewMode === 'gallery' ? 'kiosk' : 'outline'} 
+                size="touch"
+                onClick={() => setViewMode('gallery')}
+              >
+                <Images className="w-6 h-6 mr-2" />
+                Gallery
+              </Button>
+            </div>
+            
             <Button variant="outline" size="touch" onClick={() => setShowUploader(!showUploader)}>
               <Database className="w-6 h-6 mr-2" />
               Load CSV
@@ -223,8 +268,12 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
           </div>
         )}
 
-        {/* Statistics */}
-        <AlumniStats stats={stats} />
+        {/* Statistics - Show PhotoStats in gallery view, AlumniStats in list view */}
+        {viewMode === 'gallery' ? (
+          <PhotoStats alumni={alumniData} />
+        ) : (
+          <AlumniStats stats={stats} />
+        )}
 
         {/* Search Bar */}
         <div className="mb-6">
@@ -262,41 +311,84 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
           />
         </div>
 
-        {/* Alumni Grid */}
-        {filteredAlumni.length > 0 ? (
-          <AlumniGrid
-            alumni={filteredAlumni}
-            onSelect={setSelectedAlumnus}
-          />
+        {/* Content Display - List or Gallery */}
+        {displayedAlumni.length > 0 ? (
+          viewMode === 'list' ? (
+            <AlumniGrid
+              alumni={displayedAlumni}
+              onSelect={setSelectedAlumnus}
+            />
+          ) : (
+            <AlumniPhotoGallery
+              alumni={displayedAlumni}
+              onSelect={setSelectedAlumnus}
+            />
+          )
         ) : (
           <div className="text-center py-20">
-            <p className="text-xl text-muted-foreground">No alumni found matching your criteria</p>
+            <p className="text-xl text-muted-foreground">
+              {viewMode === 'gallery' 
+                ? 'No photos found matching your criteria'
+                : 'No alumni found matching your criteria'
+              }
+            </p>
           </div>
         )}
 
         {/* Detail Dialog */}
         <Dialog open={!!selectedAlumnus} onOpenChange={() => setSelectedAlumnus(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-3xl">{selectedAlumnus?.full_name}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <p className="text-lg font-semibold text-muted-foreground">Class of {selectedAlumnus?.grad_year}</p>
-                <p className="text-sm text-muted-foreground">Graduated: {selectedAlumnus?.grad_date}</p>
-              </div>
-              {selectedAlumnus?.class_role && (
-                <div>
-                  <h3 className="font-semibold mb-2">Leadership Role</h3>
-                  <p className="text-lg">{selectedAlumnus.class_role}</p>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            {selectedAlumnus && (
+              <>
+                {/* Photo Section */}
+                {getPhotoUrl(selectedAlumnus) && (
+                  <div className="mb-6 -mx-6 -mt-6">
+                    <img
+                      src={getPhotoUrl(selectedAlumnus)!}
+                      alt={selectedAlumnus.full_name}
+                      className="w-full h-[400px] object-cover"
+                    />
+                  </div>
+                )}
+                
+                <DialogHeader>
+                  <DialogTitle className="text-3xl">{selectedAlumnus.full_name}</DialogTitle>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-lg font-semibold text-muted-foreground">
+                      Class of {selectedAlumnus.grad_year}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Graduated: {selectedAlumnus.grad_date}
+                    </p>
+                  </div>
+                  
+                  {selectedAlumnus.class_role && (
+                    <div>
+                      <h3 className="font-semibold mb-2">Leadership Role</h3>
+                      <p className="text-lg">{selectedAlumnus.class_role}</p>
+                    </div>
+                  )}
+                  
+                  {selectedAlumnus.photo_file && (
+                    <div>
+                      <h3 className="font-semibold mb-2">Photo Information</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Filename: {selectedAlumnus.photo_file}
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="pt-4 border-t">
+                    <p className="text-sm text-muted-foreground">
+                      Part of the {selectedAlumnus.decade} graduating classes
+                    </p>
+                  </div>
                 </div>
-              )}
-              <div className="pt-4 border-t">
-                <p className="text-sm text-muted-foreground">
-                  Part of the {selectedAlumnus?.decade} graduating classes
-                </p>
-              </div>
-            </div>
+              </>
+            )}
           </DialogContent>
         </Dialog>
 
