@@ -5,6 +5,7 @@ import { validateBulkChanges } from "@/lib/batchEditValidator";
 import { exportAlumniToCSV, exportChangesOnly } from "@/lib/csvExporter";
 import { EditableCell } from "./EditableCell";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import { Checkbox } from "./ui/checkbox";
 import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
@@ -31,9 +32,14 @@ import {
   Download,
   AlertCircle,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Filter
 } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface AlumniBatchEditorProps {
   open: boolean;
@@ -42,6 +48,17 @@ interface AlumniBatchEditorProps {
   alumniData: AlumniRecord[];
   roles: string[];
   onSave: (changes: Map<string, Partial<AlumniRecord>>) => void;
+}
+
+type SortColumn = 'full_name' | 'class_role' | 'grad_year' | 'grad_date' | 'photo_file';
+type SortDirection = 'asc' | 'desc' | null;
+
+interface ColumnFilters {
+  full_name: string;
+  class_role: string;
+  grad_year: string;
+  grad_date: string;
+  photo_file: string;
 }
 
 export function AlumniBatchEditor({
@@ -54,6 +71,20 @@ export function AlumniBatchEditor({
 }: AlumniBatchEditorProps) {
   const [editMode, setEditMode] = useState(true);
   const [localChanges, setLocalChanges] = useState<Map<string, Partial<AlumniRecord>>>(new Map());
+  
+  // Sorting state
+  const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  
+  // Filtering state
+  const [filters, setFilters] = useState<ColumnFilters>({
+    full_name: '',
+    class_role: '',
+    grad_year: '',
+    grad_date: '',
+    photo_file: ''
+  });
+  const [showFilters, setShowFilters] = useState(false);
   
   const { 
     state: undoableChanges, 
@@ -70,10 +101,92 @@ export function AlumniBatchEditor({
     setLocalChanges(undoableChanges);
   }, [undoableChanges]);
 
-  // Get records to display
+  // Handle sorting
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      // Cycle through: asc -> desc -> null
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortColumn(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  // Handle filter change
+  const handleFilterChange = (column: keyof ColumnFilters, value: string) => {
+    setFilters(prev => ({ ...prev, [column]: value }));
+  };
+
+  // Clear all filters
+  const handleClearFilters = () => {
+    setFilters({
+      full_name: '',
+      class_role: '',
+      grad_year: '',
+      grad_date: '',
+      photo_file: ''
+    });
+  };
+
+  // Get records to display with filtering and sorting
   const displayRecords = useMemo(() => {
-    return alumniData.filter(a => selectedRecords.has(a.id));
-  }, [alumniData, selectedRecords]);
+    let records = alumniData.filter(a => selectedRecords.has(a.id));
+    
+    // Apply filters
+    if (filters.full_name) {
+      records = records.filter(r => 
+        getCurrentValue(r, 'full_name').toLowerCase().includes(filters.full_name.toLowerCase())
+      );
+    }
+    if (filters.class_role) {
+      records = records.filter(r => {
+        const role = getCurrentValue(r, 'class_role') || '';
+        return role.toLowerCase().includes(filters.class_role.toLowerCase());
+      });
+    }
+    if (filters.grad_year) {
+      records = records.filter(r => 
+        getCurrentValue(r, 'grad_year').toString().includes(filters.grad_year)
+      );
+    }
+    if (filters.grad_date) {
+      records = records.filter(r => 
+        getCurrentValue(r, 'grad_date').toLowerCase().includes(filters.grad_date.toLowerCase())
+      );
+    }
+    if (filters.photo_file) {
+      records = records.filter(r => {
+        const photo = getCurrentValue(r, 'photo_file') || '';
+        return photo.toLowerCase().includes(filters.photo_file.toLowerCase());
+      });
+    }
+    
+    // Apply sorting
+    if (sortColumn && sortDirection) {
+      records.sort((a, b) => {
+        const aVal = getCurrentValue(a, sortColumn);
+        const bVal = getCurrentValue(b, sortColumn);
+        
+        let comparison = 0;
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+          comparison = aVal - bVal;
+        } else {
+          const aStr = String(aVal || '').toLowerCase();
+          const bStr = String(bVal || '').toLowerCase();
+          comparison = aStr.localeCompare(bStr);
+        }
+        
+        return sortDirection === 'asc' ? comparison : -comparison;
+      });
+    }
+    
+    return records;
+  }, [alumniData, selectedRecords, filters, sortColumn, sortDirection, localChanges]);
 
   // Validation
   const validation = useMemo(() => {
@@ -228,22 +341,44 @@ export function AlumniBatchEditor({
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-muted-foreground" />
+              <span>Showing: <strong>{displayRecords.length}</strong> of <strong>{selectedRecords.size}</strong></span>
+            </div>
+            <div className="flex items-center gap-2">
               <span>Changes: <strong>{localChanges.size}</strong></span>
             </div>
             {validation.valid ? (
               <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Validation passed</span>
+                <span>Valid</span>
               </div>
             ) : (
               <div className="flex items-center gap-2 text-destructive">
                 <AlertTriangle className="w-4 h-4" />
-                <span><strong>{validation.issues.length}</strong> errors found</span>
+                <span><strong>{validation.issues.length}</strong> errors</span>
               </div>
             )}
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="h-7"
+            >
+              <Filter className="w-4 h-4 mr-1" />
+              {showFilters ? 'Hide' : 'Show'} Filters
+            </Button>
+            {Object.values(filters).some(f => f) && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleClearFilters}
+                className="h-7 text-destructive hover:text-destructive"
+              >
+                Clear Filters
+              </Button>
+            )}
           </div>
-          <div className="text-muted-foreground">
-            Ctrl+S to save • Ctrl+Z to undo • Ctrl+Y to redo • Esc to close
+          <div className="text-muted-foreground text-xs">
+            Ctrl+S save • Ctrl+Z undo • Ctrl+Y redo
           </div>
         </div>
 
@@ -251,15 +386,159 @@ export function AlumniBatchEditor({
         <ScrollArea className="h-[calc(95vh-200px)]">
           <Table>
             <TableHeader className="sticky top-0 bg-background z-10">
+              {/* Column Headers with Sort */}
               <TableRow>
                 <TableHead className="w-[50px]">#</TableHead>
-                <TableHead className="w-[200px]">Name</TableHead>
-                <TableHead className="w-[150px]">Role</TableHead>
-                <TableHead className="w-[100px]">Year</TableHead>
-                <TableHead className="w-[120px]">Grad Date</TableHead>
-                <TableHead className="w-[180px]">Photo File</TableHead>
+                <TableHead className="w-[200px]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 hover:bg-accent"
+                    onClick={() => handleSort('full_name')}
+                  >
+                    Name
+                    {sortColumn === 'full_name' && (
+                      sortDirection === 'asc' ? (
+                        <ArrowUp className="w-4 h-4 ml-1" />
+                      ) : (
+                        <ArrowDown className="w-4 h-4 ml-1" />
+                      )
+                    )}
+                    {sortColumn !== 'full_name' && (
+                      <ArrowUpDown className="w-4 h-4 ml-1 opacity-30" />
+                    )}
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[150px]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 hover:bg-accent"
+                    onClick={() => handleSort('class_role')}
+                  >
+                    Role
+                    {sortColumn === 'class_role' && (
+                      sortDirection === 'asc' ? (
+                        <ArrowUp className="w-4 h-4 ml-1" />
+                      ) : (
+                        <ArrowDown className="w-4 h-4 ml-1" />
+                      )
+                    )}
+                    {sortColumn !== 'class_role' && (
+                      <ArrowUpDown className="w-4 h-4 ml-1 opacity-30" />
+                    )}
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[100px]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 hover:bg-accent"
+                    onClick={() => handleSort('grad_year')}
+                  >
+                    Year
+                    {sortColumn === 'grad_year' && (
+                      sortDirection === 'asc' ? (
+                        <ArrowUp className="w-4 h-4 ml-1" />
+                      ) : (
+                        <ArrowDown className="w-4 h-4 ml-1" />
+                      )
+                    )}
+                    {sortColumn !== 'grad_year' && (
+                      <ArrowUpDown className="w-4 h-4 ml-1 opacity-30" />
+                    )}
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[120px]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 hover:bg-accent"
+                    onClick={() => handleSort('grad_date')}
+                  >
+                    Grad Date
+                    {sortColumn === 'grad_date' && (
+                      sortDirection === 'asc' ? (
+                        <ArrowUp className="w-4 h-4 ml-1" />
+                      ) : (
+                        <ArrowDown className="w-4 h-4 ml-1" />
+                      )
+                    )}
+                    {sortColumn !== 'grad_date' && (
+                      <ArrowUpDown className="w-4 h-4 ml-1 opacity-30" />
+                    )}
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[180px]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 hover:bg-accent"
+                    onClick={() => handleSort('photo_file')}
+                  >
+                    Photo File
+                    {sortColumn === 'photo_file' && (
+                      sortDirection === 'asc' ? (
+                        <ArrowUp className="w-4 h-4 ml-1" />
+                      ) : (
+                        <ArrowDown className="w-4 h-4 ml-1" />
+                      )
+                    )}
+                    {sortColumn !== 'photo_file' && (
+                      <ArrowUpDown className="w-4 h-4 ml-1 opacity-30" />
+                    )}
+                  </Button>
+                </TableHead>
                 <TableHead className="min-w-[200px]">Tags</TableHead>
               </TableRow>
+              
+              {/* Filter Row */}
+              {showFilters && (
+                <TableRow className="border-b-2">
+                  <TableHead className="p-1"></TableHead>
+                  <TableHead className="p-1">
+                    <Input
+                      placeholder="Filter..."
+                      value={filters.full_name}
+                      onChange={(e) => handleFilterChange('full_name', e.target.value)}
+                      className="h-7 text-xs"
+                    />
+                  </TableHead>
+                  <TableHead className="p-1">
+                    <Input
+                      placeholder="Filter..."
+                      value={filters.class_role}
+                      onChange={(e) => handleFilterChange('class_role', e.target.value)}
+                      className="h-7 text-xs"
+                    />
+                  </TableHead>
+                  <TableHead className="p-1">
+                    <Input
+                      placeholder="Filter..."
+                      value={filters.grad_year}
+                      onChange={(e) => handleFilterChange('grad_year', e.target.value)}
+                      className="h-7 text-xs"
+                    />
+                  </TableHead>
+                  <TableHead className="p-1">
+                    <Input
+                      placeholder="Filter..."
+                      value={filters.grad_date}
+                      onChange={(e) => handleFilterChange('grad_date', e.target.value)}
+                      className="h-7 text-xs"
+                    />
+                  </TableHead>
+                  <TableHead className="p-1">
+                    <Input
+                      placeholder="Filter..."
+                      value={filters.photo_file}
+                      onChange={(e) => handleFilterChange('photo_file', e.target.value)}
+                      className="h-7 text-xs"
+                    />
+                  </TableHead>
+                  <TableHead className="p-1"></TableHead>
+                </TableRow>
+              )}
             </TableHeader>
             <TableBody>
               {displayRecords.map((record, index) => (
