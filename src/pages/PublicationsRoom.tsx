@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PDFViewerDialog } from "@/components/PDFViewerDialog";
 import { samplePublications } from "@/lib/sampleData";
 import { PublicationRecord } from "@/types";
 import { Home, BookOpen, FileText } from "lucide-react";
@@ -17,6 +18,12 @@ interface PublicationsRoomProps {
 
 export default function PublicationsRoom({ onNavigateHome }: PublicationsRoomProps) {
   const [selectedPub, setSelectedPub] = useState<PublicationRecord | null>(null);
+  const [viewingPDF, setViewingPDF] = useState<PublicationRecord | null>(null);
+
+  const handleViewPDF = (pub: PublicationRecord) => {
+    setSelectedPub(null); // Close the detail dialog
+    setViewingPDF(pub); // Open PDF viewer
+  };
 
   return (
     <div className="kiosk-container min-h-screen p-8">
@@ -95,7 +102,12 @@ export default function PublicationsRoom({ onNavigateHome }: PublicationsRoomPro
                 ))}
               </div>
               <div className="pt-4 border-t">
-                <Button variant="kiosk-gold" size="touch" className="w-full">
+                <Button 
+                  variant="kiosk-gold" 
+                  size="touch" 
+                  className="w-full"
+                  onClick={() => selectedPub && handleViewPDF(selectedPub)}
+                >
                   <FileText className="w-5 h-5 mr-2" />
                   View PDF
                 </Button>
@@ -103,6 +115,12 @@ export default function PublicationsRoom({ onNavigateHome }: PublicationsRoomPro
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* PDF Viewer */}
+        <PDFViewerDialog
+          publication={viewingPDF}
+          onClose={() => setViewingPDF(null)}
+        />
       </div>
     </div>
   );
