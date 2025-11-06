@@ -5,11 +5,12 @@ import { AdvancedFilters } from "@/components/AdvancedFilters";
 import { CSVUploader } from "@/components/CSVUploader";
 import { CSVValidationPreview } from "@/components/CSVValidationPreview";
 import { AlumniStats } from "@/components/AlumniStats";
+import { AlumniPhotoUploader } from "@/components/AlumniPhotoUploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { sampleAlumni } from "@/lib/sampleData";
 import { AlumniRecord } from "@/types";
-import { Home, Search, Database } from "lucide-react";
+import { Home, Search, Database, ImagePlus } from "lucide-react";
 import { parseAlumniCSV, filterAlumni, getUniqueDecades, getUniqueYears, getUniqueRoles, getAlumniStats } from "@/lib/csvParser";
 import { loadDefaultAlumniCSV } from "@/lib/loadDefaultCSV";
 import { validateCSVData, ValidationReport } from "@/lib/csvValidator";
@@ -51,6 +52,7 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
   const [showUploader, setShowUploader] = useState(false);
   const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [showPhotoUploader, setShowPhotoUploader] = useState(false);
 
   // Load default CSV on mount
   useEffect(() => {
@@ -164,6 +166,12 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
     setSelectedYear(null);
   };
 
+  // Handle photo upload completion
+  const handlePhotoUploadComplete = (updatedAlumni: AlumniRecord[]) => {
+    setAlumniData(updatedAlumni);
+    setShowPhotoUploader(false);
+  };
+
   return (
     <div className="kiosk-container min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
@@ -180,6 +188,10 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
             <Button variant="outline" size="touch" onClick={() => setShowUploader(!showUploader)}>
               <Database className="w-6 h-6 mr-2" />
               Load CSV
+            </Button>
+            <Button variant="kiosk-gold" size="touch" onClick={() => setShowPhotoUploader(true)}>
+              <ImagePlus className="w-6 h-6 mr-2" />
+              Upload Photos
             </Button>
             <Button variant="kiosk" size="touch" onClick={onNavigateHome}>
               <Home className="w-6 h-6 mr-2" />
@@ -286,6 +298,15 @@ export default function AlumniRoom({ onNavigateHome }: AlumniRoomProps) {
               </div>
             </div>
           </DialogContent>
+        </Dialog>
+
+        {/* Photo Uploader Dialog */}
+        <Dialog open={showPhotoUploader} onOpenChange={setShowPhotoUploader}>
+          <AlumniPhotoUploader
+            alumniData={alumniData}
+            onComplete={handlePhotoUploadComplete}
+            onCancel={() => setShowPhotoUploader(false)}
+          />
         </Dialog>
       </div>
     </div>
