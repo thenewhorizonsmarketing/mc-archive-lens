@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 215 25% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 20%;
+
+    /* Navy Blue - Professional law school primary */
+    --primary: 215 45% 25%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Gold Accent - Classic academic accent */
+    --secondary: 43 96% 56%;
+    --secondary-foreground: 215 45% 15%;
+
+    --muted: 215 20% 95%;
+    --muted-foreground: 215 15% 50%;
+
+    --accent: 43 96% 56%;
+    --accent-foreground: 215 45% 15%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 20% 88%;
+    --input: 215 20% 88%;
+    --ring: 215 45% 25%;
+
+    --radius: 0.75rem;
+    
+    /* Kiosk-specific tokens */
+    --kiosk-navy: 215 45% 25%;
+    --kiosk-navy-light: 215 40% 35%;
+    --kiosk-gold: 43 96% 56%;
+    --kiosk-gold-dark: 43 96% 46%;
+    --kiosk-cream: 43 20% 96%;
+    
+    /* Shadows */
+    --shadow-elegant: 0 4px 20px -4px hsl(215 45% 25% / 0.15);
+    --shadow-hover: 0 8px 30px -6px hsl(215 45% 25% / 0.25);
+    
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 215 30% 12%;
+    --foreground: 0 0% 95%;
+
+    --card: 215 25% 15%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 215 25% 15%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 43 96% 56%;
+    --primary-foreground: 215 45% 15%;
+
+    --secondary: 215 25% 22%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 215 25% 20%;
+    --muted-foreground: 215 10% 60%;
+
+    --accent: 43 96% 56%;
+    --accent-foreground: 215 45% 15%;
+
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 20% 25%;
+    --input: 215 20% 25%;
+    --ring: 43 96% 56%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+  
+  /* Kiosk-specific styles */
+  .kiosk-container {
+    @apply min-h-screen bg-gradient-to-br from-background via-background to-muted/30;
+  }
+  
+  .room-card {
+    @apply bg-card border border-border rounded-xl p-6 transition-all duration-300;
+    box-shadow: var(--shadow-elegant);
+  }
+  
+  .room-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-4px);
+  }
+  
+  .touch-target {
+    @apply min-h-[80px] min-w-[120px] text-lg;
+  }
+  
+  /* PDF Viewer Styles */
+  .react-pdf__Page {
+    @apply bg-white shadow-lg;
+  }
+  
+  .react-pdf__Page__canvas {
+    @apply mx-auto;
+  }
+  
+  .react-pdf__Page__textContent {
+    @apply border-none;
+  }
+  
+  .react-pdf__Page__annotations {
+    @apply border-none;
+  }
+}
