@@ -11,7 +11,10 @@ export * from './query-builder';
 
 // Re-export commonly used items for convenience
 export { 
-  databaseManager,
+  databaseManager
+} from './manager';
+
+export { 
   dbConnection,
   connectToDatabase,
   disconnectFromDatabase,

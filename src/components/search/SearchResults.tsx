@@ -41,15 +41,24 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
   const formattedResults = useMemo(() => {
     if (!query || results.length === 0) return [];
     
-    const highlightTerms = query.split(' ').filter(term => term.length > 0);
-    return ResultFormatter.formatResults(results, {
-      includeSnippets: true,
-      snippetLength: viewMode === 'grid' ? 100 : 200,
-      highlightTerms,
-      includeThumbnails: true,
-      thumbnailSize: viewMode === 'grid' ? 'medium' : 'small',
-      includeMetadata: true
-    });
+    try {
+      const highlightTerms = query.split(' ').filter(term => term.length > 0);
+      return ResultFormatter.formatResults(results, {
+        includeSnippets: true,
+        snippetLength: viewMode === 'grid' ? 100 : 200,
+        highlightTerms,
+        includeThumbnails: true,
+        thumbnailSize: viewMode === 'grid' ? 'medium' : 'small',
+        includeMetadata: true
+      });
+    } catch (error) {
+      console.error('Error formatting results:', error);
+      // Return results as-is if formatting fails
+      return results.map(result => ({
+        ...result,
+        snippet: result.snippet || (result.metadata?.description || result.title || '').substring(0, 150) + '...'
+      })) as any;
+    }
   }, [results, query, viewMode]);
 
   // Group results by type
@@ -60,7 +69,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
       }
       acc[result.type].push(result);
       return acc;
-    }, {} as Record<string, typeof formattedResults>);
+    }, {} as Record<string, any[]>);
     
     return grouped;
   }, [formattedResults]);
@@ -221,7 +230,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
       {/* Results by Type */}
       {!isLoading && !error && formattedResults.length > 0 && (
         <div className="space-y-6">
-          {Object.entries(resultsByType).map(([type, typeResults]) => (
+          {Object.entries(resultsByType).map(([type, typeResults]: [string, any[]]) => (
             <div key={type}>
               {/* Type Header */}
               <div className="flex items-center space-x-2 mb-4">

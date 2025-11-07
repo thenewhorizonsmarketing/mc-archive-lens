@@ -77,11 +77,11 @@ export const FacultySearch: React.FC<FacultySearchProps> = ({
         </div>
         
         <SearchInterface
-          searchManager={searchManager}
           onResultSelect={handleResultSelect}
           placeholder="Search faculty by name, department, or title..."
           showFilters={true}
-          showKeyboard={false}
+          showKeyboard={true}
+          keyboardPosition="below"
           maxResults={50}
         />
       </CardContent>

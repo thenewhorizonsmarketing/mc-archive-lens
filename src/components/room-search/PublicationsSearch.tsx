@@ -77,11 +77,11 @@ export const PublicationsSearch: React.FC<PublicationsSearchProps> = ({
         </div>
         
         <SearchInterface
-          searchManager={searchManager}
           onResultSelect={handleResultSelect}
           placeholder="Search publications by title, type, or content..."
           showFilters={true}
-          showKeyboard={false}
+          showKeyboard={true}
+          keyboardPosition="below"
           maxResults={50}
         />
       </CardContent>

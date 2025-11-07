@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PhotosSearch } from "@/components/room-search/PhotosSearch";
@@ -15,10 +15,21 @@ import {
 interface PhotosRoomProps {
   onNavigateHome: () => void;
   searchQuery?: string;
+  selectedResultName?: string;
 }
 
-export default function PhotosRoom({ onNavigateHome, searchQuery }: PhotosRoomProps) {
+export default function PhotosRoom({ onNavigateHome, searchQuery, selectedResultName }: PhotosRoomProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoRecord | null>(null);
+
+  // Auto-open selected result from global search
+  useEffect(() => {
+    if (selectedResultName) {
+      const photoRecord = samplePhotos.find(p => p.title === selectedResultName);
+      if (photoRecord) {
+        setTimeout(() => setSelectedPhoto(photoRecord), 300);
+      }
+    }
+  }, [selectedResultName]);
 
   return (
     <div className="kiosk-container min-h-screen p-8">
@@ -42,8 +53,25 @@ export default function PhotosRoom({ onNavigateHome, searchQuery }: PhotosRoomPr
           <PhotosSearch
             initialQuery={searchQuery}
             onResultSelect={(result) => {
-              // Handle search result selection
-              console.log('Selected photo search result:', result);
+              // Get image path from search result
+              const imagePath = result.thumbnail || result.thumbnailPath;
+              
+              // Find the matching photo record
+              let photoRecord = samplePhotos.find(p => 
+                p.title === result.title || 
+                (result.data && 'title' in result.data && p.title === result.data.title)
+              );
+              
+              if (photoRecord) {
+                // Update with correct image path from search result
+                photoRecord = {
+                  ...photoRecord,
+                  image_path: imagePath || photoRecord.image_path
+                };
+                setSelectedPhoto(photoRecord);
+              } else {
+                console.log('Selected photo search result:', result);
+              }
             }}
           />
         </div>

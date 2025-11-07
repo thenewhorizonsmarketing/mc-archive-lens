@@ -197,56 +197,79 @@ export class ResultFormatter {
   ): string {
     let content = '';
 
-    // Extract content based on result type
-    switch (result.type) {
-      case 'alumni':
-        const alumniResult = result as AlumniResult;
-        content = [
-          alumniResult.data.caption,
-          alumniResult.data.role,
-          `Class of ${alumniResult.data.class_year}`
-        ].filter(Boolean).join(' • ');
-        break;
+    try {
+      // Check if result has existing snippet
+      if (result.snippet) {
+        content = result.snippet;
+      } else if (result.data) {
+        // Extract content based on result type
+        switch (result.type) {
+          case 'alumni':
+            const alumniResult = result as AlumniResult;
+            content = [
+              alumniResult.data?.caption,
+              alumniResult.data?.role,
+              alumniResult.data?.class_year ? `Class of ${alumniResult.data.class_year}` : null
+            ].filter(Boolean).join(' • ');
+            break;
 
-      case 'publication':
-        const pubResult = result as PublicationResult;
-        content = [
-          pubResult.data.description,
-          pubResult.data.volume_issue,
-          pubResult.data.pub_name
-        ].filter(Boolean).join(' • ');
-        break;
+          case 'publication':
+            const pubResult = result as PublicationResult;
+            content = [
+              pubResult.data?.description,
+              pubResult.data?.volume_issue,
+              pubResult.data?.pub_name
+            ].filter(Boolean).join(' • ');
+            break;
 
-      case 'photo':
-        const photoResult = result as PhotoResult;
-        content = [
-          photoResult.data.caption,
-          photoResult.data.collection,
-          photoResult.data.year_or_decade
-        ].filter(Boolean).join(' • ');
-        break;
+          case 'photo':
+            const photoResult = result as PhotoResult;
+            content = [
+              photoResult.data?.caption,
+              photoResult.data?.collection,
+              photoResult.data?.year_or_decade
+            ].filter(Boolean).join(' • ');
+            break;
 
-      case 'faculty':
-        const facultyResult = result as FacultyResult;
+          case 'faculty':
+            const facultyResult = result as FacultyResult;
+            content = [
+              facultyResult.data?.title,
+              facultyResult.data?.department,
+              facultyResult.data?.email
+            ].filter(Boolean).join(' • ');
+            break;
+        }
+      } else {
+        // Fallback to basic result properties
         content = [
-          facultyResult.data.title,
-          facultyResult.data.department,
-          facultyResult.data.email
+          result.title,
+          result.subtitle,
+          result.metadata?.description
         ].filter(Boolean).join(' • ');
-        break;
+      }
+
+      // If still no content, use title as fallback
+      if (!content) {
+        content = result.title || 'No description available';
+      }
+
+      // Truncate to max length
+      if (content.length > maxLength) {
+        content = content.substring(0, maxLength - 3) + '...';
+      }
+
+      // Apply highlighting
+      if (highlightTerms.length > 0) {
+        content = this.highlightText(content, highlightTerms);
+      }
+
+      return content;
+    } catch (error) {
+      console.error('Error generating snippet:', error);
+      // Return a safe fallback
+      return result.title ? result.title.substring(0, maxLength) : 'Content unavailable';
     }
-
-    // Truncate to max length
-    if (content.length > maxLength) {
-      content = content.substring(0, maxLength - 3) + '...';
-    }
-
-    // Apply highlighting
-    if (highlightTerms.length > 0) {
-      content = this.highlightText(content, highlightTerms);
-    }
-
-    return content;
   }
 
   private static highlightText(text: string, terms: string[]): string {

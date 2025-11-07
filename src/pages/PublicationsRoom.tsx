@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PDFViewerDialog } from "@/components/PDFViewerDialog";
@@ -16,11 +16,22 @@ import {
 interface PublicationsRoomProps {
   onNavigateHome: () => void;
   searchQuery?: string;
+  selectedResultName?: string;
 }
 
-export default function PublicationsRoom({ onNavigateHome, searchQuery }: PublicationsRoomProps) {
+export default function PublicationsRoom({ onNavigateHome, searchQuery, selectedResultName }: PublicationsRoomProps) {
   const [selectedPub, setSelectedPub] = useState<PublicationRecord | null>(null);
   const [viewingPDF, setViewingPDF] = useState<PublicationRecord | null>(null);
+
+  // Auto-open selected result from global search
+  useEffect(() => {
+    if (selectedResultName) {
+      const pubRecord = samplePublications.find(p => p.title === selectedResultName);
+      if (pubRecord) {
+        setTimeout(() => setSelectedPub(pubRecord), 300);
+      }
+    }
+  }, [selectedResultName]);
 
   const handleViewPDF = (pub: PublicationRecord) => {
     setSelectedPub(null); // Close the detail dialog
@@ -49,8 +60,27 @@ export default function PublicationsRoom({ onNavigateHome, searchQuery }: Public
           <PublicationsSearch
             initialQuery={searchQuery}
             onResultSelect={(result) => {
-              // Handle search result selection
-              console.log('Selected publication search result:', result);
+              // Get thumbnail and PDF path from search result
+              const thumbnail = result.thumbnail || result.thumbnailPath;
+              const pdfPath = result.data && 'pdf_path' in result.data ? result.data.pdf_path : null;
+              
+              // Find the matching publication record
+              let pubRecord = samplePublications.find(p => 
+                p.title === result.title || 
+                (result.data && 'title' in result.data && p.title === result.data.title)
+              );
+              
+              if (pubRecord) {
+                // Update with correct paths from search result
+                pubRecord = {
+                  ...pubRecord,
+                  thumb_path: thumbnail || pubRecord.thumb_path,
+                  pdf_path: pdfPath || pubRecord.pdf_path
+                };
+                setSelectedPub(pubRecord);
+              } else {
+                console.log('Selected publication search result:', result);
+              }
             }}
           />
         </div>

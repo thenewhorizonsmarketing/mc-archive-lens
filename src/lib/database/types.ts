@@ -93,6 +93,9 @@ export interface SearchFilters {
   publicationType?: string;
   department?: string;
   decade?: string;
+  name?: string;
+  type?: 'alumni' | 'publication' | 'photo' | 'faculty';
+  year?: number;
 }
 
 export interface YearRange {

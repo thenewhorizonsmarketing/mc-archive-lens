@@ -1,6 +1,6 @@
 // Main Search Interface Component
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, X, Filter, Loader2, AlertTriangle } from 'lucide-react';
+import { Search, X, Filter, Loader2, AlertTriangle, Clock } from 'lucide-react';
 import { SearchErrorBoundary } from '@/components/error/SearchErrorBoundary';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { SearchResults } from '@/components/search/SearchResults';
 import { FilterControls } from '@/components/search/FilterControls';
 import { SearchSuggestions } from '@/components/search/SearchSuggestions';
-import { useRealTimeSearch } from '@/lib/database/realtime-search';
-import { searchManager } from '@/lib/database';
+import { OnScreenKeyboard } from '@/components/search/OnScreenKeyboard';
+import { useSearch } from '@/lib/search-context';
 import { SearchResult, SearchFilters } from '@/lib/database/types';
 import { FilterOptions } from '@/lib/database/filter-processor';
 
@@ -20,6 +20,8 @@ export interface SearchInterfaceProps {
   className?: string;
   showFilters?: boolean;
   showSuggestions?: boolean;
+  showKeyboard?: boolean;
+  keyboardPosition?: 'below' | 'floating';
   maxResults?: number;
   debounceMs?: number;
 }
@@ -31,6 +33,8 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
   className = "",
   showFilters = true,
   showSuggestions = true,
+  showKeyboard = false,
+  keyboardPosition = 'below',
   maxResults = 50,
   debounceMs = 300
 }) => {
@@ -40,66 +44,113 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
   const [showSuggestionsPanel, setShowSuggestionsPanel] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Initialize real-time search
-  const realTimeSearch = useRealTimeSearch(searchManager, {
-    debounceMs,
-    maxResults,
-    enableCaching: true,
-    enableMetrics: true
-  });
+  // Use search context
+  const { searchManager, isInitialized, error: contextError } = useSearch();
+  
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [searchMetrics, setSearchMetrics] = useState<any>(null);
 
-  const [searchState, setSearchState] = useState(realTimeSearch.getState());
+  // Debounced search function
+  const performSearch = useCallback(async (searchQuery: string, searchFilters: FilterOptions) => {
+    if (!searchManager || !searchQuery || searchQuery.length < 1) {
+      setSearchResults([]);
+      setTotalCount(0);
+      setIsLoading(false);
+      return;
+    }
 
-  // Subscribe to search state changes
-  useEffect(() => {
-    const unsubscribe = realTimeSearch.subscribe(setSearchState);
-    return unsubscribe;
-  }, [realTimeSearch]);
+    setIsLoading(true);
+    setSearchError(null);
+    
+    try {
+      const startTime = Date.now();
+      const results = await searchManager.searchAll(searchQuery, searchFilters, { limit: maxResults } as any);
+      const endTime = Date.now();
+      
+      setSearchResults(results);
+      setTotalCount(results.length);
+      setSearchMetrics({
+        queryTime: endTime - startTime,
+        resultCount: results.length,
+        cacheHit: false,
+        queryComplexity: 'simple',
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchError(error instanceof Error ? error.message : 'Search failed');
+      setSearchResults([]);
+      setTotalCount(0);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [searchManager, maxResults]);
 
-  // Handle query changes
+  // Handle query changes - instant update
   const handleQueryChange = useCallback((value: string) => {
     setQuery(value);
-    
-    if (value.length >= 2) {
-      // Get suggestions
-      if (showSuggestions) {
-        realTimeSearch.getSuggestions(value, 5).then(setSuggestions);
-        setShowSuggestionsPanel(true);
-      }
-      
-      // Perform search
-      realTimeSearch.search(value, filters);
-    } else {
+  }, []);
+
+  // Modern instant search with debouncing
+  useEffect(() => {
+    // Clear results immediately if query is empty
+    if (!query || query.length === 0) {
+      setSearchResults([]);
+      setTotalCount(0);
       setSuggestions([]);
       setShowSuggestionsPanel(false);
-      realTimeSearch.clear();
+      setIsLoading(false);
+      return;
     }
-  }, [filters, realTimeSearch, showSuggestions]);
+
+    // Show loading state immediately for better UX
+    setIsLoading(true);
+
+    // Debounce search and suggestions
+    const searchTimer = setTimeout(() => {
+      // Perform search (works with even 1 character)
+      performSearch(query, filters);
+
+      // Get autocomplete suggestions
+      if (showSuggestions && searchManager && query.length >= 1) {
+        searchManager.getSuggestions(query, 8).then(suggestions => {
+          setSuggestions(suggestions);
+          setShowSuggestionsPanel(suggestions.length > 0);
+        }).catch(console.error);
+      }
+    }, query.length === 1 ? 400 : debounceMs); // Longer delay for single char
+
+    return () => clearTimeout(searchTimer);
+  }, [query, filters, performSearch, showSuggestions, searchManager, debounceMs]);
 
   // Handle filter changes
   const handleFiltersChange = useCallback((newFilters: FilterOptions) => {
     setFilters(newFilters);
     if (query.length >= 2) {
-      realTimeSearch.search(query, newFilters);
+      performSearch(query, newFilters);
     }
-  }, [query, realTimeSearch]);
+  }, [query, performSearch]);
 
   // Handle suggestion selection
   const handleSuggestionSelect = useCallback((suggestion: string) => {
     setQuery(suggestion);
     setShowSuggestionsPanel(false);
-    realTimeSearch.search(suggestion, filters);
+    performSearch(suggestion, filters);
     
     // Add to recent searches
     setRecentSearches(prev => {
       const updated = [suggestion, ...prev.filter(s => s !== suggestion)];
       return updated.slice(0, 5); // Keep only 5 recent searches
     });
-  }, [filters, realTimeSearch]);
+  }, [filters, performSearch]);
 
   // Handle result selection
   const handleResultSelect = useCallback((result: SearchResult) => {
@@ -119,20 +170,49 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
     setQuery('');
     setSuggestions([]);
     setShowSuggestionsPanel(false);
-    realTimeSearch.clear();
+    setSearchResults([]);
+    setTotalCount(0);
+    setSearchError(null);
     inputRef.current?.focus();
-  }, [realTimeSearch]);
+  }, []);
+
+  // Handle on-screen keyboard key press
+  const handleKeyboardKey = useCallback((key: string) => {
+    if (key === 'Backspace') {
+      setQuery(prev => prev.slice(0, -1));
+    } else if (key === 'Enter') {
+      // Trigger search
+      if (query.length >= 2) {
+        performSearch(query, filters);
+      }
+      setKeyboardVisible(false);
+    } else if (key === 'Space') {
+      setQuery(prev => prev + ' ');
+    } else if (key.length === 1) {
+      // Regular character
+      setQuery(prev => prev + key);
+    }
+  }, [query, filters, performSearch]);
+
+  // Handle input focus - show keyboard
+  const handleInputFocus = useCallback(() => {
+    if (showKeyboard) {
+      setKeyboardVisible(true);
+    }
+  }, [showKeyboard]);
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
-      if (showSuggestionsPanel) {
+      if (keyboardVisible) {
+        setKeyboardVisible(false);
+      } else if (showSuggestionsPanel) {
         setShowSuggestionsPanel(false);
       } else if (query) {
         handleClear();
       }
     }
-  }, [showSuggestionsPanel, query, handleClear]);
+  }, [showSuggestionsPanel, query, keyboardVisible, handleClear]);
 
   // Click outside to close suggestions
   useEffect(() => {
@@ -182,14 +262,18 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
             value={query}
             onChange={(e) => handleQueryChange(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={handleInputFocus}
             className="pl-10 pr-20 h-12 text-lg"
             autoComplete="off"
             autoFocus
           />
           
           {/* Loading indicator */}
-          {searchState.isLoading && (
-            <Loader2 className="absolute right-12 h-4 w-4 animate-spin text-muted-foreground" />
+          {isLoading && (
+            <div className="absolute right-12 flex items-center space-x-1">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span className="text-xs text-muted-foreground">Searching...</span>
+            </div>
           )}
           
           {/* Clear button */}
@@ -204,15 +288,36 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
             </Button>
           )}
         </div>
+      </div>
 
-        {/* Search Suggestions */}
+      {/* On-Screen Keyboard - Positioned above suggestions, outside relative container */}
+      {showKeyboard && keyboardVisible && keyboardPosition !== 'floating' && (
+        <div className="mt-2 mb-2">
+          <OnScreenKeyboard
+            onKeyPress={handleKeyboardKey}
+            className="w-full"
+          />
+          <div className="flex justify-end mt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setKeyboardVisible(false)}
+            >
+              Hide Keyboard
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Search Suggestions - Below keyboard */}
+      <div className="relative">
         {showSuggestions && showSuggestionsPanel && (suggestions.length > 0 || recentSearches.length > 0) && (
           <SearchSuggestions
             ref={suggestionsRef}
             suggestions={suggestions}
             recentSearches={recentSearches}
             onSelect={handleSuggestionSelect}
-            className="absolute top-full left-0 right-0 z-50 mt-1"
+            className="mt-1"
           />
         )}
       </div>
@@ -261,48 +366,113 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
         <FilterControls
           filters={filters}
           onChange={handleFiltersChange}
-          availableOptions={searchState.results.length > 0 ? undefined : undefined} // Would be computed from results
+          availableOptions={searchResults.length > 0 ? undefined : undefined} // Would be computed from results
           className="mt-4 p-4 border rounded-lg bg-muted/50"
         />
       )}
 
       {/* Search Results */}
       <div className="mt-6">
-        {searchState.error && (
-          <div className="text-red-600 text-sm mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
-            Search error: {searchState.error}
+        {/* Empty state - show helpful message */}
+        {!query && isInitialized && !contextError && (
+          <div className="text-center py-12 text-muted-foreground">
+            <Search className="h-16 w-16 mx-auto mb-4 opacity-30" />
+            <p className="text-lg font-medium mb-2">Start typing to search</p>
+            <p className="text-sm">Search across alumni, publications, photos, and faculty</p>
+            {recentSearches.length > 0 && (
+              <div className="mt-6">
+                <p className="text-sm font-medium mb-3">Recent searches:</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {recentSearches.slice(0, 5).map((search, idx) => (
+                    <Button
+                      key={idx}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSuggestionSelect(search)}
+                      className="text-xs"
+                    >
+                      <Clock className="h-3 w-3 mr-1" />
+                      {search}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {query.length >= 2 && !searchState.isLoading && searchState.results.length === 0 && !searchState.error && (
+        {/* Context Error */}
+        {contextError && (
+          <div className="text-red-600 text-sm mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
+            <AlertTriangle className="h-4 w-4 inline mr-2" />
+            System error: {contextError}
+          </div>
+        )}
+
+        {/* Search Error */}
+        {searchError && (
+          <div className="text-red-600 text-sm mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
+            <AlertTriangle className="h-4 w-4 inline mr-2" />
+            Search error: {searchError}
+          </div>
+        )}
+
+        {/* Loading State */}
+        {!isInitialized && (
+          <div className="text-center py-8 text-muted-foreground">
+            <Loader2 className="h-12 w-12 mx-auto mb-4 animate-spin" />
+            <p className="text-lg font-medium">Initializing search...</p>
+          </div>
+        )}
+
+        {/* No Results */}
+        {isInitialized && query.length >= 1 && !isLoading && searchResults.length === 0 && !searchError && !contextError && (
           <div className="text-center py-8 text-muted-foreground">
             <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-medium">No results found</p>
-            <p className="text-sm">Try adjusting your search terms or filters</p>
+            <p className="text-lg font-medium">No results found for "{query}"</p>
+            <p className="text-sm">Try different search terms or check your spelling</p>
+            {suggestions.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm font-medium mb-2">Did you mean:</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {suggestions.slice(0, 3).map((suggestion, idx) => (
+                    <Button
+                      key={idx}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSuggestionSelect(suggestion)}
+                    >
+                      {suggestion}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {searchState.results.length > 0 && (
+        {/* Results */}
+        {searchResults.length > 0 && (
           <>
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-muted-foreground">
-                Found {searchState.totalCount} result{searchState.totalCount !== 1 ? 's' : ''}
-                {searchState.metrics && (
+                Found {totalCount} result{totalCount !== 1 ? 's' : ''}
+                {searchMetrics && (
                   <span className="ml-2">
-                    ({Math.round(searchState.metrics.queryTime)}ms)
+                    ({Math.round(searchMetrics.queryTime)}ms)
                   </span>
                 )}
               </p>
             </div>
 
             <SearchResults
-              results={searchState.results}
-              totalCount={searchState.totalCount}
-              isLoading={searchState.isLoading}
-              error={searchState.error}
+              results={searchResults}
+              totalCount={totalCount}
+              isLoading={isLoading}
+              error={searchError}
               query={query}
               onResultSelect={handleResultSelect}
-              metrics={searchState.metrics}
+              metrics={searchMetrics}
               highlightTerms={query.split(' ').filter(term => term.length > 0)}
               className="space-y-4"
             />
@@ -310,15 +480,34 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
         )}
 
         {/* Performance metrics (development only) */}
-        {process.env.NODE_ENV === 'development' && searchState.metrics && (
+        {process.env.NODE_ENV === 'development' && searchMetrics && (
           <div className="mt-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
-            Query: {searchState.metrics.queryTime.toFixed(1)}ms | 
-            Results: {searchState.metrics.resultCount} | 
-            Cache: {searchState.metrics.cacheHit ? 'HIT' : 'MISS'} |
-            Complexity: {searchState.metrics.queryComplexity}
+            Query: {searchMetrics.queryTime.toFixed(1)}ms | 
+            Results: {searchMetrics.resultCount} | 
+            Cache: {searchMetrics.cacheHit ? 'HIT' : 'MISS'} |
+            Complexity: {searchMetrics.queryComplexity}
           </div>
         )}
       </div>
+
+      {/* On-Screen Keyboard - Floating mode only */}
+      {showKeyboard && keyboardVisible && keyboardPosition === 'floating' && (
+        <div className="fixed bottom-4 left-4 right-4 z-50 shadow-2xl">
+          <OnScreenKeyboard
+            onKeyPress={handleKeyboardKey}
+            className="w-full"
+          />
+          <div className="flex justify-end mt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setKeyboardVisible(false)}
+            >
+              Hide Keyboard
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
     </SearchErrorBoundary>
   );

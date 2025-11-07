@@ -14,6 +14,7 @@ const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 const Index = () => {
   const [currentRoom, setCurrentRoom] = useState<RoomType>('home');
   const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
+  const [selectedResultId, setSelectedResultId] = useState<string | undefined>(undefined);
   const [showAdmin, setShowAdmin] = useState(false);
 
   const handleIdle = () => {
@@ -31,15 +32,17 @@ const Index = () => {
     enabled: currentRoom !== 'home' || showAdmin
   });
 
-  const handleNavigate = (room: RoomType, query?: string) => {
+  const handleNavigate = (room: RoomType, query?: string, resultId?: string) => {
     setCurrentRoom(room);
     setSearchQuery(query);
+    setSelectedResultId(resultId);
     resetTimer();
   };
 
   const handleNavigateHome = () => {
     setCurrentRoom('home');
     setSearchQuery(undefined);
+    setSelectedResultId(undefined);
     setShowAdmin(false);
   };
 
@@ -74,10 +77,10 @@ const Index = () => {
       ) : (
         <>
           {currentRoom === 'home' && <HomePage onNavigate={handleNavigate} />}
-          {currentRoom === 'alumni' && <AlumniRoom onNavigateHome={handleNavigateHome} searchQuery={searchQuery} />}
-          {currentRoom === 'publications' && <PublicationsRoom onNavigateHome={handleNavigateHome} searchQuery={searchQuery} />}
-          {currentRoom === 'photos' && <PhotosRoom onNavigateHome={handleNavigateHome} searchQuery={searchQuery} />}
-          {currentRoom === 'faculty' && <FacultyRoom onNavigateHome={handleNavigateHome} searchQuery={searchQuery} />}
+          {currentRoom === 'alumni' && <AlumniRoom onNavigateHome={handleNavigateHome} searchQuery={searchQuery} selectedResultName={selectedResultId} />}
+          {currentRoom === 'publications' && <PublicationsRoom onNavigateHome={handleNavigateHome} searchQuery={searchQuery} selectedResultName={selectedResultId} />}
+          {currentRoom === 'photos' && <PhotosRoom onNavigateHome={handleNavigateHome} searchQuery={searchQuery} selectedResultName={selectedResultId} />}
+          {currentRoom === 'faculty' && <FacultyRoom onNavigateHome={handleNavigateHome} searchQuery={searchQuery} selectedResultName={selectedResultId} />}
         </>
       )}
     </>

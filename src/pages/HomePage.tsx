@@ -5,7 +5,7 @@ import { Users, BookOpen, Image, UserSquare } from "lucide-react";
 import { RoomType } from "@/types";
 
 interface HomePageProps {
-  onNavigate: (room: RoomType, searchQuery?: string) => void;
+  onNavigate: (room: RoomType, searchQuery?: string, resultId?: string) => void;
 }
 
 export default function HomePage({ onNavigate }: HomePageProps) {

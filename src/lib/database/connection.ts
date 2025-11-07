@@ -1,5 +1,5 @@
 // Database connection utilities with error handling and retry logic
-import { DatabaseManager, databaseManager } from './manager';
+import { DatabaseManager } from './manager';
 import { DatabaseError } from './types';
 
 export class DatabaseConnection {
@@ -10,7 +10,7 @@ export class DatabaseConnection {
   private retryDelay = 1000; // 1 second
 
   private constructor() {
-    this.manager = databaseManager;
+    this.manager = new DatabaseManager();
   }
 
   /**

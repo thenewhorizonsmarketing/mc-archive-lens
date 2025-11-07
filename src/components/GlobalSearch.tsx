@@ -42,8 +42,8 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
         targetRoom = 'alumni';
     }
     
-    // Navigate to room with the search context
-    onNavigateToRoom(targetRoom, result.title);
+    // Navigate to room with the result name to auto-open
+    onNavigateToRoom(targetRoom, undefined, result.title);
   }, [onNavigateToRoom]);
 
   // Loading state
@@ -116,11 +116,11 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
       </CardHeader>
       <CardContent>
         <SearchInterface
-          searchManager={searchManager}
           onResultSelect={handleResultSelect}
           placeholder="Search alumni, publications, photos, and faculty..."
           showFilters={true}
           showKeyboard={true}
+          keyboardPosition="below"
           maxResults={20}
         />
       </CardContent>

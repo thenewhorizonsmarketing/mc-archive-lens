@@ -77,11 +77,11 @@ export const PhotosSearch: React.FC<PhotosSearchProps> = ({
         </div>
         
         <SearchInterface
-          searchManager={searchManager}
           onResultSelect={handleResultSelect}
           placeholder="Search photos by title, collection, or year..."
           showFilters={true}
-          showKeyboard={false}
+          showKeyboard={true}
+          keyboardPosition="below"
           maxResults={50}
         />
       </CardContent>

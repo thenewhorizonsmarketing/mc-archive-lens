@@ -17,6 +17,8 @@ export interface FilterOptions {
   collection?: string;
   role?: string;
   tags?: string[];
+  name?: string; // Added name filter
+  type?: 'alumni' | 'publication' | 'photo' | 'faculty'; // Added type filter
 }
 
 export interface SortOptions {
@@ -355,6 +357,15 @@ export class FilterProcessor {
    */
   static createFilterSummary(filters: FilterOptions): string[] {
     const summary: string[] = [];
+
+    if (filters.type) {
+      const typeLabel = filters.type.charAt(0).toUpperCase() + filters.type.slice(1);
+      summary.push(`Type: ${typeLabel}`);
+    }
+
+    if (filters.name) {
+      summary.push(`Name: ${filters.name}`);
+    }
 
     if (filters.yearRange) {
       summary.push(`Years: ${filters.yearRange.start}-${filters.yearRange.end}`);

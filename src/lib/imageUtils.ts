@@ -5,21 +5,34 @@ import { AlumniRecord } from "@/types";
  * Supports multiple path configurations
  */
 export function getPhotoUrl(alumnus: AlumniRecord): string | null {
-  if (!alumnus.photo_file) return null;
-  
-  // If it's already a full URL, return it
-  if (alumnus.photo_file.startsWith('http')) {
-    return alumnus.photo_file;
+  // Check photo_file first (standard CSV data)
+  if (alumnus.photo_file) {
+    // If it's already a full URL, return it
+    if (alumnus.photo_file.startsWith('http') || alumnus.photo_file.startsWith('/')) {
+      return alumnus.photo_file;
+    }
+    // Construct path from year and filename
+    return `/photos/${alumnus.grad_year}/${alumnus.photo_file}`;
   }
   
-  // Use composite_image_path if available
+  // Check portrait_path (from search results or database)
+  if (alumnus.portrait_path) {
+    // If it's already a full URL, return it
+    if (alumnus.portrait_path.startsWith('http') || alumnus.portrait_path.startsWith('/')) {
+      return alumnus.portrait_path;
+    }
+    return `/photos/${alumnus.portrait_path}`;
+  }
+  
+  // Check composite_image_path
   if (alumnus.composite_image_path) {
-    return alumnus.composite_image_path;
+    if (alumnus.composite_image_path.startsWith('http') || alumnus.composite_image_path.startsWith('/')) {
+      return alumnus.composite_image_path;
+    }
+    return `/photos/${alumnus.composite_image_path}`;
   }
   
-  // Construct path from year and filename
-  // Assumes photos are in /photos/{year}/ directory
-  return `/photos/${alumnus.grad_year}/${alumnus.photo_file}`;
+  return null;
 }
 
 /**

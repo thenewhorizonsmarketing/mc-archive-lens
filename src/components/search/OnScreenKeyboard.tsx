@@ -1,6 +1,6 @@
 // On-Screen Keyboard Component
 import React, { useState } from 'react';
-import { Delete, Space, CornerDownLeft, Shift } from 'lucide-react';
+import { Delete, Space, CornerDownLeft, ArrowBigUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -197,7 +197,7 @@ export const OnScreenKeyboard: React.FC<OnScreenKeyboardProps> = ({
             className="min-w-[5rem] h-10 text-xs"
             onClick={() => handleKeyPress('Shift')}
           >
-            <Shift className="h-4 w-4 mr-1" />
+            <ArrowBigUp className="h-4 w-4 mr-1" />
             Shift
           </Button>
           {keyboardRows[3].map((key) => (
@@ -217,7 +217,7 @@ export const OnScreenKeyboard: React.FC<OnScreenKeyboardProps> = ({
             className="min-w-[5rem] h-10 text-xs"
             onClick={() => handleKeyPress('Shift')}
           >
-            <Shift className="h-4 w-4 mr-1" />
+            <ArrowBigUp className="h-4 w-4 mr-1" />
             Shift
           </Button>
         </div>

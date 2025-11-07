@@ -35,9 +35,10 @@ import {
 interface AlumniRoomProps {
   onNavigateHome: () => void;
   searchQuery?: string;
+  selectedResultName?: string;
 }
 
-export default function AlumniRoom({ onNavigateHome, searchQuery }: AlumniRoomProps) {
+export default function AlumniRoom({ onNavigateHome, searchQuery, selectedResultName }: AlumniRoomProps) {
   // Filter mode state
   const [filterMode, setFilterMode] = useState<'decade' | 'year'>('decade');
   
@@ -87,6 +88,26 @@ export default function AlumniRoom({ onNavigateHome, searchQuery }: AlumniRoomPr
     };
     loadDefault();
   }, []);
+
+  // Auto-open selected result from global search
+  useEffect(() => {
+    if (selectedResultName && alumniData.length > 0) {
+      // Find the matching alumni record
+      const alumniRecord = alumniData.find(a => {
+        const fullName = `${a.first_name} ${a.middle_name || ''} ${a.last_name}`.trim().replace(/\s+/g, ' ');
+        return fullName === selectedResultName || 
+               a.full_name === selectedResultName;
+      });
+      
+      if (alumniRecord) {
+        // Small delay to ensure UI is ready
+        setTimeout(() => {
+          setSelectedAlumnus(alumniRecord);
+          toast.success(`Viewing ${alumniRecord.full_name}`);
+        }, 300);
+      }
+    }
+  }, [selectedResultName, alumniData]);
 
   // Handle CSV file selection - validate first
   const handleCSVUpload = async (file: File) => {
@@ -434,25 +455,75 @@ export default function AlumniRoom({ onNavigateHome, searchQuery }: AlumniRoomPr
           <AlumniSearch
             initialQuery={searchQuery}
             onResultSelect={(result) => {
-              // Handle search result selection - could open detail view or filter
-              console.log('Selected alumni search result:', result);
+              // Use the data from the search result directly
+              if (result.type === 'alumni' && result.data) {
+                const searchData = result.data as any;
+                
+                // Get the photo path from search result (this is what works in the thumbnail)
+                const photoPath = result.thumbnail || result.thumbnailPath;
+                
+                // Find the matching alumni record from our data by ID or name
+                let alumniRecord = alumniData.find(a => 
+                  a.id === searchData.id || 
+                  a.full_name === searchData.full_name ||
+                  a.full_name === result.title
+                );
+                
+                if (alumniRecord) {
+                  // Update the record with the correct photo path from search result
+                  alumniRecord = {
+                    ...alumniRecord,
+                    portrait_path: photoPath || alumniRecord.portrait_path,
+                    photo_file: photoPath ? photoPath.split('/').pop() : alumniRecord.photo_file
+                  };
+                  
+                  console.log('Using found record with photo:', {
+                    thumbnail: result.thumbnail,
+                    portrait_path: alumniRecord.portrait_path,
+                    photo_file: alumniRecord.photo_file
+                  });
+                  
+                  setSelectedAlumnus(alumniRecord);
+                  toast.success(`Viewing ${alumniRecord.full_name}`);
+                } else {
+                  // If not in current filtered view, still try to show from search data
+                  // Convert search data to AlumniRecord format
+                  // Use thumbnail from search result if available
+                  const photoPath = result.thumbnail || result.thumbnailPath || searchData.portrait_path || searchData.composite_image_path || searchData.photo_file;
+                  
+                  const tempRecord: AlumniRecord = {
+                    id: String(searchData.id || 0),
+                    full_name: searchData.full_name || result.title,
+                    first_name: searchData.first_name || '',
+                    middle_name: searchData.middle_name || '',
+                    last_name: searchData.last_name || '',
+                    grad_year: searchData.class_year || searchData.grad_year || 0,
+                    grad_date: searchData.grad_date || '',
+                    class_role: searchData.role || searchData.class_role || '',
+                    composite_image_path: searchData.composite_image_path || '',
+                    portrait_path: photoPath || searchData.portrait_path,
+                    photo_file: searchData.photo_file || (photoPath ? photoPath.split('/').pop() : undefined),
+                    decade: searchData.decade || '',
+                    tags: Array.isArray(searchData.tags) ? searchData.tags : (searchData.tags ? [searchData.tags] : []),
+                    sort_key: searchData.sort_key || ''
+                  };
+                  
+                  console.log('Created temp record with photo:', {
+                    thumbnail: result.thumbnail,
+                    portrait_path: tempRecord.portrait_path,
+                    photo_file: tempRecord.photo_file,
+                    composite: tempRecord.composite_image_path
+                  });
+                  
+                  setSelectedAlumnus(tempRecord);
+                  toast.info(`Viewing ${result.title} from search results`);
+                }
+              }
             }}
           />
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative max-w-2xl">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search by name, role, or year..."
-              value={localSearchQuery}
-              onChange={(e) => setLocalSearchQuery(e.target.value)}
-              className="pl-14 h-16 text-lg"
-            />
-          </div>
-        </div>
+
 
         {/* Batch Actions Toolbar */}
         {editMode && selectedRecords.size > 0 && (

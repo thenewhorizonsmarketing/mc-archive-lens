@@ -78,11 +78,11 @@ export const AlumniSearch: React.FC<AlumniSearchProps> = ({
         </div>
         
         <SearchInterface
-          searchManager={searchManager}
           onResultSelect={handleResultSelect}
-          placeholder="Search alumni by name, year, or role..."
+          placeholder="Search by name, role, or year..."
           showFilters={true}
-          showKeyboard={false}
+          showKeyboard={true}
+          keyboardPosition="below"
           maxResults={50}
         />
       </CardContent>

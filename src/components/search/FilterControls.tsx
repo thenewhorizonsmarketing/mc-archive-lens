@@ -1,9 +1,10 @@
 // Filter Controls Component
 import React, { useState, useCallback } from 'react';
-import { X, Calendar, BookOpen, Building, Camera, Tag, RotateCcw } from 'lucide-react';
+import { X, Calendar, BookOpen, Building, Camera, Tag, RotateCcw, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -169,6 +170,60 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
             </div>
             <Separator className="mt-4" />
           </div>
+        )}
+
+        {/* Type Filter */}
+        <div>
+          <Label className="text-sm font-medium mb-3 block flex items-center space-x-2">
+            <Tag className="h-4 w-4" />
+            <span>Content Type</span>
+          </Label>
+          <Select
+            value={filters.type || 'all'}
+            onValueChange={(value) => onChange({
+              ...filters,
+              type: value === 'all' ? undefined : value as any
+            })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="All types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="alumni">Alumni</SelectItem>
+              <SelectItem value="publication">Publications</SelectItem>
+              <SelectItem value="photo">Photos</SelectItem>
+              <SelectItem value="faculty">Faculty</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Separator />
+
+        {/* Name Filter (for Alumni/Faculty) */}
+        {(!filters.type || filters.type === 'alumni' || filters.type === 'faculty') && (
+          <>
+            <div>
+              <Label className="text-sm font-medium mb-3 block flex items-center space-x-2">
+                <User className="h-4 w-4" />
+                <span>Name Search</span>
+              </Label>
+              <Input
+                type="text"
+                placeholder="Search by name..."
+                value={filters.name || ''}
+                onChange={(e) => onChange({
+                  ...filters,
+                  name: e.target.value || undefined
+                })}
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Filter by first name, last name, or full name
+              </p>
+            </div>
+            <Separator />
+          </>
         )}
 
         {/* Year Range Filter */}

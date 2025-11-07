@@ -7,9 +7,11 @@ import { Home, Mail, Phone, UserSquare } from "lucide-react";
 interface FacultyRoomProps {
   onNavigateHome: () => void;
   searchQuery?: string;
+  selectedResultName?: string;
 }
 
-export default function FacultyRoom({ onNavigateHome, searchQuery }: FacultyRoomProps) {
+export default function FacultyRoom({ onNavigateHome, searchQuery, selectedResultName }: FacultyRoomProps) {
+  // Note: Faculty room doesn't have a detail dialog yet, but prop is ready for future use
   return (
     <div className="kiosk-container min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
@@ -32,8 +34,10 @@ export default function FacultyRoom({ onNavigateHome, searchQuery }: FacultyRoom
           <FacultySearch
             initialQuery={searchQuery}
             onResultSelect={(result) => {
-              // Handle search result selection
+              // For faculty, we could scroll to the matching card or highlight it
+              // For now, just log it since there's no detail dialog
               console.log('Selected faculty search result:', result);
+              // Could add: scroll to element, highlight, or open a detail modal
             }}
           />
         </div>
