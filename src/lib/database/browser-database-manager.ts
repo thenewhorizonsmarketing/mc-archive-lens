@@ -13,7 +13,7 @@ export interface MockDataItem {
 
 export class BrowserDatabaseManager extends DatabaseManager {
   private mockData: MockDataItem[] = [];
-  private isInitialized = false;
+  private browserInitialized = false;
   private realDataLoaded = false;
 
   constructor() {
@@ -265,41 +265,106 @@ export class BrowserDatabaseManager extends DatabaseManager {
       }
     }
     
-    this.isInitialized = true;
+    this.browserInitialized = true;
   }
 
   async close(): Promise<void> {
-    this.isInitialized = false;
+    this.browserInitialized = false;
   }
 
   isConnected(): boolean {
-    return this.isInitialized;
+    return this.browserInitialized;
   }
 
   // Mock search functionality
   async searchMockData(query: string, filters: SearchFilters = {}): Promise<SearchResult[]> {
-    if (!this.isInitialized) {
+    if (!this.browserInitialized) {
       throw new Error('Database not initialized');
     }
 
-    const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 0);
-    
-    let results = this.mockData.filter(item => {
-      // If no query, match all (for filter-only searches)
-      if (searchTerms.length === 0) {
-        // Apply filters only
-        if (filters.type && item.type !== filters.type) return false;
-        if (filters.year && item.metadata.year !== filters.year) return false;
-        if (filters.department && item.metadata.department !== filters.department) return false;
-        if (filters.yearRange) {
-          const itemYear = item.metadata.year;
-          if (itemYear && (itemYear < filters.yearRange.start || itemYear > filters.yearRange.end)) {
-            return false;
-          }
-        }
-        return true;
-      }
+    // Debug logging
+    console.log('[BrowserDatabaseManager] searchMockData called with:', {
+      query,
+      filters,
+      hasQuery: query.length > 0,
+      activeFilters: Object.keys(filters).filter(k => filters[k as keyof SearchFilters])
+    });
 
+    console.log('[BrowserDatabaseManager] Starting with', this.mockData.length, 'total items');
+
+    const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 0);
+    const hasQuery = searchTerms.length > 0;
+    
+    // STEP 1: Apply filters FIRST (before query matching)
+    let results = this.mockData.filter(item => {
+      // Type filter
+      if (filters.type && item.type !== filters.type) {
+        return false;
+      }
+      
+      // Year filter (exact year)
+      if (filters.year && item.metadata.year !== filters.year) {
+        return false;
+      }
+      
+      // Department filter
+      if (filters.department && item.metadata.department !== filters.department) {
+        return false;
+      }
+      
+      // Year range filter
+      if (filters.yearRange) {
+        const itemYear = item.metadata.year;
+        if (itemYear && (itemYear < filters.yearRange.start || itemYear > filters.yearRange.end)) {
+          return false;
+        }
+      }
+      
+      // Name filter
+      if (filters.name) {
+        const nameQuery = filters.name.toLowerCase();
+        const nameFields = [
+          item.title,
+          item.metadata.name,
+          item.metadata.firstName,
+          item.metadata.lastName
+        ].filter(Boolean).join(' ').toLowerCase();
+        
+        if (!nameFields.includes(nameQuery)) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+    
+    console.log('[BrowserDatabaseManager] After applying filters:', results.length, 'items remain');
+    
+    // STEP 2: If no query, return filtered results (filter-only browsing)
+    if (!hasQuery) {
+      console.log('[BrowserDatabaseManager] No query provided, returning filter-only results');
+      // Skip to scoring and return
+      const scoredResults = results.map(item => {
+        return {
+          id: item.id,
+          type: item.type,
+          title: item.title,
+          snippet: this.generateSnippet(item.content, []),
+          relevanceScore: 1.0,
+          score: 1.0,
+          metadata: item.metadata,
+          thumbnail: item.thumbnail,
+          thumbnailPath: item.thumbnail,
+          data: this.createDataRecord(item)
+        } as SearchResult;
+      });
+      
+      console.log('[BrowserDatabaseManager] Returning', scoredResults.length, 'filter-only results');
+      return scoredResults;
+    }
+    
+    // STEP 3: Apply query matching to filtered results
+    results = results.filter(item => {
       // Enhanced text search - check multiple fields
       const searchableFields = [
         item.title,
@@ -318,35 +383,25 @@ export class BrowserDatabaseManager extends DatabaseManager {
         return searchableFields.includes(term);
       });
       
-      if (!matchesQuery) return false;
-
-      // Apply filters
-      if (filters.type && item.type !== filters.type) return false;
-      if (filters.year && item.metadata.year !== filters.year) return false;
-      if (filters.department && item.metadata.department !== filters.department) return false;
-      if (filters.yearRange) {
-        const itemYear = item.metadata.year;
-        if (itemYear && (itemYear < filters.yearRange.start || itemYear > filters.yearRange.end)) {
-          return false;
-        }
-      }
-      // Name filter
-      if (filters.name) {
-        const nameQuery = filters.name.toLowerCase();
-        const nameFields = [
-          item.title,
-          item.metadata.name,
-          item.metadata.firstName,
-          item.metadata.lastName
-        ].filter(Boolean).join(' ').toLowerCase();
-        
-        if (!nameFields.includes(nameQuery)) {
-          return false;
-        }
-      }
-      
-      return true;
+      return matchesQuery;
     });
+
+    console.log('[BrowserDatabaseManager] After query matching:', results.length, 'items remain');
+    
+    // Log which filters/query eliminated results
+    if (results.length === 0) {
+      if (filters.type || filters.year || filters.department || filters.yearRange || filters.name) {
+        console.warn('[BrowserDatabaseManager] Filters and/or query eliminated all results. Active filters:', {
+          type: filters.type,
+          year: filters.year,
+          department: filters.department,
+          yearRange: filters.yearRange,
+          name: filters.name
+        }, 'Query:', query);
+      } else {
+        console.warn('[BrowserDatabaseManager] Query eliminated all results:', query);
+      }
+    }
 
     // Calculate relevance scores
     const scoredResults = results.map(item => {
@@ -383,7 +438,7 @@ export class BrowserDatabaseManager extends DatabaseManager {
           score += 0.3;
         }
         // Tag matches
-        if (item.metadata.tags?.some(tag => tag.toLowerCase().includes(term))) {
+        if (item.metadata.tags?.some((tag: string) => tag.toLowerCase().includes(term))) {
           score += 0.4;
         }
       });
@@ -407,6 +462,8 @@ export class BrowserDatabaseManager extends DatabaseManager {
 
     // Sort by relevance score
     scoredResults.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+    console.log('[BrowserDatabaseManager] Returning', scoredResults.length, 'scored and sorted results');
 
     return scoredResults;
   }
@@ -507,6 +564,7 @@ export class BrowserDatabaseManager extends DatabaseManager {
             department: 'Law', // Default for this dataset
             currentPosition: classRole || 'Alumni',
             role: classRole,
+            photoFile: photoFile || '',
             tags: [classRole, gradYear.toString(), 'law', 'alumni'].filter(Boolean)
           },
           thumbnail: photoFile || undefined
@@ -527,12 +585,22 @@ export class BrowserDatabaseManager extends DatabaseManager {
     switch (item.type) {
       case 'alumni':
         return {
-          id: parseInt(item.id.replace('alumni_', '')),
+          id: item.id,
           full_name: item.title,
+          first_name: item.metadata.firstName || '',
+          middle_name: item.metadata.middleName || '',
+          last_name: item.metadata.lastName || '',
+          grad_year: item.metadata.year || 2020,
           class_year: item.metadata.year || 2020,
-          role: item.metadata.currentPosition || '',
+          grad_date: `${item.metadata.year || 2020}-05-15`,
+          class_role: item.metadata.role || '',
+          role: item.metadata.currentPosition || item.metadata.role || '',
+          photo_file: item.metadata.photoFile || item.thumbnail || '',
+          portrait_path: item.thumbnail || '',
+          composite_image_path: '',
+          decade: `${Math.floor((item.metadata.year || 2020) / 10) * 10}s`,
           caption: item.content,
-          tags: item.metadata.tags?.join(', ') || '',
+          tags: item.metadata.tags || [],
           sort_key: item.title.toLowerCase()
         };
 

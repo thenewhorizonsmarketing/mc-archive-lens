@@ -1,8 +1,8 @@
 // Browser-Compatible Search Manager
 import { BrowserDatabaseManager } from './browser-database-manager';
-import { SearchResult, SearchFilters, SearchOptions } from './types';
+import { SearchResult, SearchFilters } from './types';
 
-export interface BrowserSearchOptions extends SearchOptions {
+export interface BrowserSearchOptions {
   enableMockData?: boolean;
   mockDataDelay?: number;
   limit?: number;
@@ -51,6 +51,15 @@ export class BrowserSearchManager {
     filters: SearchFilters = {}, 
     options: BrowserSearchOptions = {}
   ): Promise<SearchResult[]> {
+    // Debug logging
+    console.log('[BrowserSearchManager] searchAll called with:', {
+      query,
+      filters,
+      options,
+      hasQuery: query.length > 0,
+      filterCount: Object.keys(filters).filter(k => filters[k as keyof SearchFilters]).length
+    });
+
     // Check circuit breaker
     if (this.isCircuitBreakerOpen) {
       if (Date.now() - this.lastCircuitBreakerReset > this.circuitBreakerTimeout) {
@@ -67,8 +76,11 @@ export class BrowserSearchManager {
     const cached = this.searchCache.get(cacheKey);
     
     if (cached && (Date.now() - cached.timestamp) < this.cacheTimeout) {
+      console.log('[BrowserSearchManager] Cache hit, returning', cached.results.length, 'cached results');
       return cached.results;
     }
+
+    console.log('[BrowserSearchManager] Cache miss, performing search');
 
     // Attempt search with retry logic
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
@@ -81,11 +93,14 @@ export class BrowserSearchManager {
         // Perform search using mock data
         const results = await this.performSearchWithTimeout(query, filters, 5000); // 5 second timeout
         
+        console.log('[BrowserSearchManager] Search returned', results.length, 'results before options');
+        
         // Apply options
         let finalResults = results;
         
         if (options.limit) {
           finalResults = results.slice(0, options.limit);
+          console.log('[BrowserSearchManager] Limited to', finalResults.length, 'results');
         }
 
         // Cache results
@@ -100,6 +115,7 @@ export class BrowserSearchManager {
         // Reset error state on successful search
         this.resetErrorState();
 
+        console.log('[BrowserSearchManager] Returning', finalResults.length, 'final results');
         return finalResults;
       } catch (error) {
         console.error(`Search attempt ${attempt} failed:`, error);
@@ -335,10 +351,19 @@ export class BrowserSearchManager {
         type: 'alumni',
         title: 'Search Service Temporarily Unavailable',
         snippet: 'The search service is currently experiencing issues. Please try again later or contact support.',
+        relevanceScore: 1.0,
         score: 1.0,
         metadata: {
           isFallback: true,
           message: 'This is a fallback result due to search service issues'
+        },
+        data: {
+          id: 0,
+          full_name: 'Search Service Unavailable',
+          class_year: 2000,
+          role: '',
+          tags: '',
+          sort_key: ''
         }
       }
     ];

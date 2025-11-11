@@ -1,0 +1,144 @@
+/* Fullscreen Search Interface Styles */
+
+/* Import touch feedback styles for all interactive elements */
+@import './touch-feedback.css';
+
+/* Fullscreen container - 100vw x 100vh (Requirement 1.2) */
+.fullscreen-search-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: hsl(var(--background));
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  
+  /* Smooth transition animation - 300ms (Requirement 1.1) */
+  animation: fullscreen-search-enter 300ms ease-out;
+}
+
+@keyframes fullscreen-search-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Close button - 60x60px minimum in top-right corner (Requirement 1.3) */
+.fullscreen-search-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  min-width: 60px;
+  min-height: 60px;
+  background-color: hsl(var(--muted));
+  border: none;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10001;
+  transition: all 150ms ease;
+  color: hsl(var(--kiosk-navy));
+}
+
+.fullscreen-search-close:hover {
+  background-color: hsl(var(--muted) / 0.8);
+  transform: scale(1.05);
+}
+
+.fullscreen-search-close:active {
+  background-color: hsl(var(--muted) / 0.6);
+  transform: scale(0.98);
+}
+
+/* Touch feedback for close button */
+.fullscreen-search-close:focus-visible {
+  outline: 3px solid hsl(var(--kiosk-gold));
+  outline-offset: 2px;
+}
+
+/* Main content area */
+.fullscreen-search-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px;
+  padding-top: 100px; /* Space for close button */
+}
+
+/* Placeholder content (will be replaced by KioskSearchInterface) */
+.fullscreen-search-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+/* Prevent body scroll when fullscreen is active (Requirement 1.5) */
+body.fullscreen-search-active {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+/* iOS Safari scroll prevention (Requirement 1.5) */
+body.fullscreen-search-active {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+}
+
+/* Focus trap styling */
+.fullscreen-search-container:focus {
+  outline: none;
+}
+
+/* Ensure proper layering */
+.fullscreen-search-container * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .fullscreen-search-close {
+    top: 10px;
+    right: 10px;
+  }
+  
+  .fullscreen-search-content {
+    padding: 10px;
+    padding-top: 80px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .fullscreen-search-close {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .fullscreen-search-container {
+    animation: none;
+  }
+  
+  .fullscreen-search-close {
+    transition: none;
+  }
+}

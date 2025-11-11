@@ -39,70 +39,83 @@ export const ErrorRecovery: React.FC<ErrorRecoveryProps> = ({
   const [isRunningRecovery, setIsRunningRecovery] = useState(false);
   const [recoveryProgress, setRecoveryProgress] = useState(0);
   const [errorLogs, setErrorLogs] = useState<any[]>([]);
+  const [initError, setInitError] = useState<string | null>(null);
 
   // Initialize recovery actions
   useEffect(() => {
-    const actions: RecoveryAction[] = [
-      {
-        id: 'rebuild-indexes',
-        name: 'Rebuild Search Indexes',
-        description: 'Rebuild all FTS5 search indexes to fix corruption issues',
-        icon: <Database className="h-4 w-4" />,
-        action: async () => {
-          if (searchManager) {
-            await searchManager.rebuildIndexes();
-          }
+    try {
+      const actions: RecoveryAction[] = [
+        {
+          id: 'rebuild-indexes',
+          name: 'Rebuild Search Indexes',
+          description: 'Rebuild all FTS5 search indexes to fix corruption issues',
+          icon: <Database className="h-4 w-4" />,
+          action: async () => {
+            if (searchManager && typeof searchManager.rebuildIndexes === 'function') {
+              await searchManager.rebuildIndexes();
+            } else {
+              throw new Error('Search manager not available or method not found');
+            }
+          },
+          isRunning: false,
+          isCompleted: false
         },
-        isRunning: false,
-        isCompleted: false
-      },
-      {
-        id: 'test-connection',
-        name: 'Test Database Connection',
-        description: 'Verify database connectivity and basic operations',
-        icon: <Search className="h-4 w-4" />,
-        action: async () => {
-          if (searchManager) {
-            await searchManager.searchAll('test', {}, { limit: 1 });
-          }
+        {
+          id: 'test-connection',
+          name: 'Test Database Connection',
+          description: 'Verify database connectivity and basic operations',
+          icon: <Search className="h-4 w-4" />,
+          action: async () => {
+            if (searchManager && typeof searchManager.searchAll === 'function') {
+              await searchManager.searchAll('test', {}, { limit: 1 });
+            } else {
+              throw new Error('Search manager not available or method not found');
+            }
+          },
+          isRunning: false,
+          isCompleted: false
         },
-        isRunning: false,
-        isCompleted: false
-      },
-      {
-        id: 'clear-cache',
-        name: 'Clear Search Cache',
-        description: 'Clear all cached search results and force fresh queries',
-        icon: <RefreshCw className="h-4 w-4" />,
-        action: async () => {
-          // Clear localStorage cache
-          localStorage.removeItem('searchCache');
-          localStorage.removeItem('recentSearches');
+        {
+          id: 'clear-cache',
+          name: 'Clear Search Cache',
+          description: 'Clear all cached search results and force fresh queries',
+          icon: <RefreshCw className="h-4 w-4" />,
+          action: async () => {
+            // Clear localStorage cache
+            localStorage.removeItem('searchCache');
+            localStorage.removeItem('recentSearches');
+          },
+          isRunning: false,
+          isCompleted: false
         },
-        isRunning: false,
-        isCompleted: false
-      },
-      {
-        id: 'validate-data',
-        name: 'Validate Data Integrity',
-        description: 'Check for data consistency and missing records',
-        icon: <CheckCircle className="h-4 w-4" />,
-        action: async () => {
-          if (searchManager) {
-            const dbManager = searchManager.getDatabaseManager();
-            // Perform basic data validation queries
-            await dbManager.executeQuery('SELECT COUNT(*) FROM alumni');
-            await dbManager.executeQuery('SELECT COUNT(*) FROM publications');
-            await dbManager.executeQuery('SELECT COUNT(*) FROM photos');
-            await dbManager.executeQuery('SELECT COUNT(*) FROM faculty');
-          }
-        },
-        isRunning: false,
-        isCompleted: false
-      }
-    ];
+        {
+          id: 'validate-data',
+          name: 'Validate Data Integrity',
+          description: 'Check for data consistency and missing records',
+          icon: <CheckCircle className="h-4 w-4" />,
+          action: async () => {
+            if (searchManager && typeof searchManager.getDatabaseManager === 'function') {
+              const dbManager = searchManager.getDatabaseManager();
+              // Perform basic data validation queries
+              await dbManager.executeQuery('SELECT COUNT(*) FROM alumni');
+              await dbManager.executeQuery('SELECT COUNT(*) FROM publications');
+              await dbManager.executeQuery('SELECT COUNT(*) FROM photos');
+              await dbManager.executeQuery('SELECT COUNT(*) FROM faculty');
+            } else {
+              throw new Error('Search manager not available or method not found');
+            }
+          },
+          isRunning: false,
+          isCompleted: false
+        }
+      ];
 
-    setRecoveryActions(actions);
+      setRecoveryActions(actions);
+      setInitError(null);
+    } catch (error) {
+      console.error('Failed to initialize recovery actions:', error);
+      setInitError(error instanceof Error ? error.message : 'Unknown initialization error');
+    }
   }, [searchManager]);
 
   // Load error logs from localStorage
@@ -202,12 +215,51 @@ export const ErrorRecovery: React.FC<ErrorRecoveryProps> = ({
   };
 
   // Get recovery status from search manager
-  const recoveryStatus = searchManager?.getRecoveryStatus() || {
-    hasError: false,
-    canRecover: false,
-    recoveryActions: [],
-    isRecovering: false
+  const getRecoveryStatus = () => {
+    try {
+      if (searchManager && typeof searchManager.getRecoveryStatus === 'function') {
+        return searchManager.getRecoveryStatus();
+      }
+    } catch (error) {
+      console.error('Failed to get recovery status:', error);
+    }
+    return {
+      hasError: false,
+      canRecover: false,
+      recoveryActions: [],
+      isRecovering: false
+    };
   };
+
+  const recoveryStatus = getRecoveryStatus();
+
+  // Show initialization error if present
+  if (initError) {
+    return (
+      <div className="error-recovery space-y-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Initialization Error:</strong> {initError}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Show loading state if search manager is not available
+  if (!searchManager) {
+    return (
+      <div className="error-recovery space-y-6">
+        <Alert>
+          <RefreshCw className="h-4 w-4 animate-spin" />
+          <AlertDescription>
+            Waiting for search manager to initialize...
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="error-recovery space-y-6">

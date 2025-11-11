@@ -161,65 +161,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
         </Alert>
       )}
 
-      {/* Results Header */}
-      {!isLoading && !error && formattedResults.length > 0 && (
-        <Card className="mb-4">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div>
-                  <h3 className="text-lg font-medium">
-                    {totalCount.toLocaleString()} result{totalCount !== 1 ? 's' : ''}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Found for "{query}"
-                    {metrics && (
-                      <span className="ml-2">
-                        • {metrics.queryTime.toFixed(0)}ms
-                        {metrics.cacheHit && (
-                          <Badge variant="secondary" className="ml-2 text-xs">
-                            Cached
-                          </Badge>
-                        )}
-                      </span>
-                    )}
-                  </p>
-                </div>
-                
-                {/* Performance Indicator */}
-                {metrics && (
-                  <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    {metrics.queryTime < 50 ? (
-                      <TrendingUp className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <Clock className="h-4 w-4 text-yellow-500" />
-                    )}
-                    <span>{metrics.queryTime.toFixed(0)}ms</span>
-                  </div>
-                )}
-              </div>
 
-              {/* View Mode Toggle */}
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Loading State */}
       {isLoading && <LoadingSkeleton />}
@@ -248,7 +190,10 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                     <ResultCard
                       key={result.id}
                       result={result}
-                      onClick={() => onResultSelect(result)}
+                      onClick={() => {
+                        console.log('[SearchResults] ResultCard onClick triggered for:', result.title);
+                        onResultSelect(result);
+                      }}
                       highlightTerms={query.split(' ').filter(term => term.length > 0)}
                     />
                   ))}
@@ -270,21 +215,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
         </div>
       )}
 
-      {/* Performance Debug Info (Development Only) */}
-      {process.env.NODE_ENV === 'development' && metrics && (
-        <Card className="mt-6 border-dashed">
-          <CardHeader>
-            <CardTitle className="text-sm">Debug Info</CardTitle>
-          </CardHeader>
-          <CardContent className="text-xs space-y-1">
-            <div>Query Time: {metrics.queryTime.toFixed(2)}ms</div>
-            <div>Result Count: {metrics.resultCount}</div>
-            <div>Cache Hit: {metrics.cacheHit ? 'Yes' : 'No'}</div>
-            <div>Query Complexity: {metrics.queryComplexity}</div>
-            <div>Timestamp: {new Date(metrics.timestamp).toLocaleTimeString()}</div>
-          </CardContent>
-        </Card>
-      )}
+
     </div>
   );
 };

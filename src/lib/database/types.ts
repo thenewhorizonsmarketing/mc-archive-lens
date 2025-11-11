@@ -96,6 +96,9 @@ export interface SearchFilters {
   name?: string;
   type?: 'alumni' | 'publication' | 'photo' | 'faculty';
   year?: number;
+  eventType?: string;
+  position?: string;
+  collection?: string;
 }
 
 export interface YearRange {

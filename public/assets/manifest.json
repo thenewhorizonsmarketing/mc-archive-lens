@@ -1,0 +1,123 @@
+{
+  "models": [
+    {
+      "id": "board-frame",
+      "path": "/assets/optimized/models/board-frame.glb",
+      "format": "glb",
+      "compression": "draco",
+      "size": 245760
+    },
+    {
+      "id": "glass-pane",
+      "path": "/assets/optimized/models/glass-pane.glb",
+      "format": "glb",
+      "compression": "draco",
+      "size": 51200
+    },
+    {
+      "id": "center-logo",
+      "path": "/assets/optimized/models/center-logo.glb",
+      "format": "glb",
+      "compression": "draco",
+      "size": 102400
+    },
+    {
+      "id": "room-alumni-tile",
+      "path": "/assets/optimized/models/room-alumni-tile.glb",
+      "format": "glb",
+      "compression": "draco",
+      "size": 81920
+    },
+    {
+      "id": "room-faculty-tile",
+      "path": "/assets/optimized/models/room-faculty-tile.glb",
+      "format": "glb",
+      "compression": "draco",
+      "size": 81920
+    },
+    {
+      "id": "room-publications-tile",
+      "path": "/assets/optimized/models/room-publications-tile.glb",
+      "format": "glb",
+      "compression": "draco",
+      "size": 81920
+    },
+    {
+      "id": "room-photos-tile",
+      "path": "/assets/optimized/models/room-photos-tile.glb",
+      "format": "glb",
+      "compression": "draco",
+      "size": 81920
+    }
+  ],
+  "textures": [
+    {
+      "id": "walnut-wood-2k",
+      "path": "/assets/optimized/textures/walnut-wood-2k.ktx2",
+      "format": "ktx2",
+      "resolution": "2k",
+      "size": 409600
+    },
+    {
+      "id": "walnut-wood-1k",
+      "path": "/assets/optimized/textures/walnut-wood-1k.ktx2",
+      "format": "ktx2",
+      "resolution": "1k",
+      "size": 204800
+    },
+    {
+      "id": "brass-metal-2k",
+      "path": "/assets/optimized/textures/brass-metal-2k.ktx2",
+      "format": "ktx2",
+      "resolution": "2k",
+      "size": 307200
+    },
+    {
+      "id": "brass-metal-1k",
+      "path": "/assets/optimized/textures/brass-metal-1k.ktx2",
+      "format": "ktx2",
+      "resolution": "1k",
+      "size": 153600
+    },
+    {
+      "id": "marble-green-2k",
+      "path": "/assets/optimized/textures/marble-green-2k.ktx2",
+      "format": "ktx2",
+      "resolution": "2k",
+      "size": 460800
+    },
+    {
+      "id": "marble-green-1k",
+      "path": "/assets/optimized/textures/marble-green-1k.ktx2",
+      "format": "ktx2",
+      "resolution": "1k",
+      "size": 230400
+    },
+    {
+      "id": "glass-normal-1k",
+      "path": "/assets/optimized/textures/glass-normal-1k.ktx2",
+      "format": "ktx2",
+      "resolution": "1k",
+      "size": 204800
+    },
+    {
+      "id": "glass-roughness-1k",
+      "path": "/assets/optimized/textures/glass-roughness-1k.ktx2",
+      "format": "ktx2",
+      "resolution": "1k",
+      "size": 102400
+    }
+  ],
+  "fonts": [
+    {
+      "id": "cinzel-regular",
+      "path": "/assets/fonts/cinzel-regular.woff2",
+      "format": "woff2"
+    },
+    {
+      "id": "cinzel-bold",
+      "path": "/assets/fonts/cinzel-bold.woff2",
+      "format": "woff2"
+    }
+  ]
+}

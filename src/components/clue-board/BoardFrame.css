@@ -1,0 +1,187 @@
+.board-frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  contain: layout style paint;
+  transform: translateZ(0); /* Force GPU layer */
+}
+
+.frame-top,
+.frame-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(180deg, 
+    #654321 0%, 
+    #7a5230 25%,
+    #8B4513 50%,
+    #7a5230 75%,
+    #654321 100%
+  );
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4),
+              inset 0 -2px 6px rgba(255, 255, 255, 0.15),
+              inset 0 1px 1px rgba(255, 255, 255, 0.1),
+              0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.frame-top {
+  top: 0;
+}
+
+.frame-bottom {
+  bottom: 0;
+}
+
+.frame-left,
+.frame-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  background: linear-gradient(90deg, 
+    #654321 0%, 
+    #7a5230 25%,
+    #8B4513 50%,
+    #7a5230 75%,
+    #654321 100%
+  );
+  box-shadow: inset 2px 0 6px rgba(0, 0, 0, 0.4),
+              inset -2px 0 6px rgba(255, 255, 255, 0.15),
+              inset 1px 0 1px rgba(255, 255, 255, 0.1),
+              2px 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.frame-left {
+  left: 0;
+}
+
+.frame-right {
+  right: 0;
+}
+
+.frame-corner {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle at center, 
+    #8B4513 0%,
+    #7a5230 40%,
+    #654321 100%
+  );
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5),
+              inset 0 1px 2px rgba(255, 255, 255, 0.1),
+              0 2px 8px rgba(0, 0, 0, 0.4),
+              0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.frame-corner-tl {
+  top: 0;
+  left: 0;
+  border-radius: 0 0 8px 0;
+}
+
+.frame-corner-tr {
+  top: 0;
+  right: 0;
+  border-radius: 0 0 0 8px;
+}
+
+.frame-corner-bl {
+  bottom: 0;
+  left: 0;
+  border-radius: 0 8px 0 0;
+}
+
+.frame-corner-br {
+  bottom: 0;
+  right: 0;
+  border-radius: 8px 0 0 0;
+}
+
+/* Responsive adjustments */
+/* Tablet breakpoint (768px - 1024px) */
+@media (max-width: 1024px) {
+  .frame-top,
+  .frame-bottom {
+    height: 32px;
+  }
+
+  .frame-left,
+  .frame-right {
+    width: 32px;
+  }
+
+  .frame-corner {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* Mobile breakpoint (< 768px) - Hide or minimize frame */
+@media (max-width: 768px) {
+  .frame-top,
+  .frame-bottom {
+    height: 24px;
+  }
+
+  .frame-left,
+  .frame-right {
+    width: 24px;
+  }
+
+  .frame-corner {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+  }
+  
+  .frame-corner-tl {
+    border-radius: 0 0 6px 0;
+  }
+  
+  .frame-corner-tr {
+    border-radius: 0 0 0 6px;
+  }
+  
+  .frame-corner-bl {
+    border-radius: 0 6px 0 0;
+  }
+  
+  .frame-corner-br {
+    border-radius: 6px 0 0 0;
+  }
+}
+
+/* Small mobile devices (< 480px) - Minimal frame */
+@media (max-width: 480px) {
+  .frame-top,
+  .frame-bottom {
+    height: 16px;
+  }
+
+  .frame-left,
+  .frame-right {
+    width: 16px;
+  }
+
+  .frame-corner {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .board-frame,
+  .frame-top,
+  .frame-bottom,
+  .frame-left,
+  .frame-right,
+  .frame-corner {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

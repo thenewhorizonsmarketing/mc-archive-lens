@@ -1,3 +1,21 @@
+/* Modern CSS Reset - Load FIRST */
+@import './styles/modern-reset.css';
+
+/* Browser UI Blocker - MUST load first to block browser UI */
+@import './styles/browser-ui-blocker.css';
+
+/* Layout Stability - Prevent Cumulative Layout Shift */
+@import './styles/layout-stability.css';
+
+/* Kiosk Layout Stability - Fullscreen search interface CLS prevention */
+@import './styles/kiosk-layout-stability.css';
+
+/* Disable Browser Autocomplete - Prevent dropdown layout shifts */
+@import './styles/autocomplete-disable.css';
+
+/* Search Layout Fix - Prevent white bars and layout shifts */
+@import './styles/search-layout-fix.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

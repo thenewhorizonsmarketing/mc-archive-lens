@@ -1,3 +1,5 @@
+import { logAccessibilityValidation } from './color-contrast';
+
 // Accessibility Manager for WCAG 2.1 AA Compliance
 export interface AccessibilityOptions {
   highContrast?: boolean;
@@ -48,6 +50,9 @@ export class AccessibilityManager {
     this.setupKeyboardNavigation();
     this.applyAccessibilityStyles();
     this.detectUserPreferences();
+    
+    // Validate color accessibility (Requirement 9.1)
+    logAccessibilityValidation();
   }
 
   /**
@@ -125,7 +130,7 @@ export class AccessibilityManager {
   /**
    * Track focus for better navigation
    */
-  private trackFocus(event: KeyboardEvent): void {
+  private trackFocus(_event: KeyboardEvent): void {
     const activeElement = document.activeElement;
     if (activeElement && activeElement.id) {
       this.state.currentFocus = activeElement.id;
@@ -199,12 +204,12 @@ export class AccessibilityManager {
     }
 
     // Listen for changes
-    window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (e) => {
-      this.updateOptions({ reducedMotion: e.matches });
+    window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (event) => {
+      this.updateOptions({ reducedMotion: event.matches });
     });
 
-    window.matchMedia('(prefers-contrast: high)').addEventListener('change', (e) => {
-      this.updateOptions({ highContrast: e.matches });
+    window.matchMedia('(prefers-contrast: high)').addEventListener('change', (event) => {
+      this.updateOptions({ highContrast: event.matches });
     });
   }
 
@@ -426,7 +431,7 @@ export class AccessibilityManager {
     }
 
     // Remove keyboard listeners
-    for (const [key, listener] of this.keyboardListeners) {
+    for (const [, listener] of this.keyboardListeners) {
       document.removeEventListener('keydown', listener);
     }
     

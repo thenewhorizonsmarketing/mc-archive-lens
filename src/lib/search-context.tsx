@@ -2,6 +2,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { BrowserSearchManager } from '@/lib/database/browser-search-manager';
 import { BrowserDatabaseManager } from '@/lib/database/browser-database-manager';
+import { FilterConfig } from '@/lib/filters/types';
+import { AdvancedQueryBuilder } from '@/lib/filters/AdvancedQueryBuilder';
+import { FilterProcessor } from '@/lib/filters/FilterProcessor';
 
 interface SearchContextType {
   searchManager: BrowserSearchManager | null;
@@ -20,6 +23,11 @@ interface SearchContextType {
     isRecovering: boolean;
   };
   attemptRecovery: () => Promise<boolean>;
+  // Advanced filter support
+  advancedQueryBuilder: AdvancedQueryBuilder | null;
+  filterProcessor: FilterProcessor | null;
+  executeAdvancedQuery: (config: FilterConfig) => Promise<any[]>;
+  estimateFilterResults: (config: FilterConfig) => Promise<number>;
 }
 
 const SearchContext = createContext<SearchContextType>({
@@ -37,7 +45,11 @@ const SearchContext = createContext<SearchContextType>({
     recoveryActions: [],
     isRecovering: false
   },
-  attemptRecovery: async () => false
+  attemptRecovery: async () => false,
+  advancedQueryBuilder: null,
+  filterProcessor: null,
+  executeAdvancedQuery: async () => [],
+  estimateFilterResults: async () => 0
 });
 
 export const useSearch = () => {
@@ -61,12 +73,22 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
     message: 'Initializing...',
     lastCheck: new Date()
   });
-  const [errorRecoveryState, setErrorRecoveryState] = useState({
+  const [errorRecoveryState, setErrorRecoveryState] = useState<{
+    hasError: boolean;
+    errorType?: string;
+    canRecover: boolean;
+    recoveryActions: string[];
+    isRecovering: boolean;
+  }>({
     hasError: false,
     canRecover: false,
     recoveryActions: [],
     isRecovering: false
   });
+  
+  // Advanced filter support
+  const [advancedQueryBuilder] = useState(() => new AdvancedQueryBuilder());
+  const [filterProcessor] = useState(() => new FilterProcessor());
 
   useEffect(() => {
     const initializeSearch = async () => {
@@ -163,6 +185,60 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
     }
   };
 
+  // Execute advanced query with filter configuration
+  const executeAdvancedQuery = async (config: FilterConfig): Promise<any[]> => {
+    if (!searchManager || !advancedQueryBuilder) {
+      throw new Error('Search system not initialized');
+    }
+
+    try {
+      // Validate filters
+      const validation = filterProcessor.validateFilters(config);
+      if (!validation.isValid) {
+        throw new Error(`Invalid filters: ${validation.errors.join(', ')}`);
+      }
+
+      // Build optimized query
+      const queryResult = advancedQueryBuilder.buildQuery(config);
+      const optimized = advancedQueryBuilder.optimizeQuery(queryResult);
+
+      // Execute query through database manager
+      const dbManager = (searchManager as any).dbManager;
+      if (!dbManager || !dbManager.db) {
+        throw new Error('Database not available');
+      }
+
+      const results = await dbManager.db.exec(optimized.sql, optimized.params);
+      return results || [];
+    } catch (err) {
+      console.error('Advanced query execution failed:', err);
+      throw err;
+    }
+  };
+
+  // Estimate result count for filter configuration
+  const estimateFilterResults = async (config: FilterConfig): Promise<number> => {
+    if (!searchManager || !filterProcessor) {
+      return 0;
+    }
+
+    try {
+      const dbManager = (searchManager as any).dbManager;
+      if (!dbManager || !dbManager.db) {
+        return 0;
+      }
+
+      const executeQuery = async (sql: string, params: any[]) => {
+        return await dbManager.db.exec(sql, params);
+      };
+
+      return await filterProcessor.estimateResultCount(config, executeQuery);
+    } catch (err) {
+      console.error('Failed to estimate filter results:', err);
+      return 0;
+    }
+  };
+
   return (
     <SearchContext.Provider value={{ 
       searchManager, 
@@ -170,7 +246,11 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
       error, 
       healthStatus, 
       errorRecoveryState,
-      attemptRecovery
+      attemptRecovery,
+      advancedQueryBuilder,
+      filterProcessor,
+      executeAdvancedQuery,
+      estimateFilterResults
     }}>
       {children}
     </SearchContext.Provider>

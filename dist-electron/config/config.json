@@ -1,0 +1,7 @@
+{
+  "idleTimeout": 45,
+  "attractTimeout": 120,
+  "adminPin": "1234",
+  "motionTier": "auto",
+  "reducedMotion": false
+}

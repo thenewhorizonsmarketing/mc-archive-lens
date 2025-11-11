@@ -1,0 +1,182 @@
+.central-branding {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: linear-gradient(135deg,
+    rgba(12, 35, 64, 0.98) 0%,
+    rgba(12, 35, 64, 0.95) 50%,
+    rgba(12, 35, 64, 0.92) 100%
+  );
+  border: 2px solid #C99700;
+  border-radius: 10px;
+  padding: 29px;
+  transform: translateZ(12px);
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.1),
+              0 7px 19px rgba(0, 0, 0, 0.2),
+              0 14px 38px rgba(0, 0, 0, 0.15),
+              0 1px 2px rgba(0, 0, 0, 0.3),
+              0 0 14px rgba(201, 151, 0, 0.35),
+              0 0 29px rgba(201, 151, 0, 0.25),
+              0 0 42px rgba(201, 151, 0, 0.15),
+              inset 0 1px 0 rgba(201, 151, 0, 0.2);
+  max-width: 357px;
+  contain: layout style paint;
+  will-change: transform;
+  z-index: 10;
+}
+
+.branding-inset {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.04) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  border-radius: 8px;
+  padding: 19px;
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1),
+              inset 0 -1px 2px rgba(0, 0, 0, 0.1);
+  transform: translateZ(0); /* Force GPU layer */
+}
+
+.branding-logo {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 71px;
+  margin: 0 auto;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4))
+          drop-shadow(0 2px 7px rgba(0, 0, 0, 0.3))
+          drop-shadow(0 0 14px rgba(201, 151, 0, 0.3));
+  /* Ensure logo is accessible */
+  object-fit: contain;
+}
+
+.branding-title {
+  font-family: var(--font-primary-extra-bold, 'Source Sans 3', sans-serif);
+  font-size: 3rem;
+  font-weight: 800;
+  color: #C99700;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4),
+              0 4px 12px rgba(0, 0, 0, 0.3),
+              0 0 24px rgba(201, 151, 0, 0.3);
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.branding-tagline {
+  font-family: var(--font-secondary, 'Source Serif 4', serif);
+  font-size: 0.74rem;
+  color: #FFFFFF;
+  text-align: center;
+  margin: 7px 0 0;
+  line-height: 1.5;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3),
+              0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive adjustments */
+/* Tablet breakpoint (768px - 1024px) */
+@media (max-width: 1024px) {
+  .central-branding {
+    padding: 18px;
+    margin-bottom: 14px;
+    max-width: 280px;
+    transform: translateZ(8px); /* Reduce 3D depth */
+  }
+
+  .branding-inset {
+    padding: 10px;
+  }
+
+  .branding-logo {
+    max-height: 36px;
+  }
+
+  .branding-title {
+    font-size: 1.25rem;
+  }
+
+  .branding-tagline {
+    font-size: 0.7rem;
+  }
+}
+
+/* Mobile breakpoint (< 768px) */
+@media (max-width: 768px) {
+  .central-branding {
+    padding: 16px 12px;
+    margin-bottom: 12px;
+    border-width: 2px; /* Thinner border on mobile */
+    border-radius: 10px;
+    transform: translateZ(6px); /* Minimal 3D depth */
+    /* Reduce shadow intensity for mobile */
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.14),
+                0 2px 8px rgba(0, 0, 0, 0.12),
+                0 1px 2px rgba(0, 0, 0, 0.2),
+                0 0 8px rgba(201, 151, 0, 0.25),
+                0 0 16px rgba(201, 151, 0, 0.25);
+  }
+
+  .branding-inset {
+    padding: 10px 8px;
+    border-radius: 8px;
+    backdrop-filter: blur(8px); /* Reduce blur for performance */
+  }
+
+  .branding-logo {
+    max-height: 32px;
+  }
+
+  .branding-title {
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+  }
+
+  .branding-tagline {
+    font-size: 0.65rem;
+    margin-top: 4px;
+  }
+}
+
+/* Small mobile devices (< 480px) */
+@media (max-width: 480px) {
+  .central-branding {
+    padding: 12px 10px;
+    margin-bottom: 10px;
+    transform: translateZ(4px);
+  }
+
+  .branding-inset {
+    padding: 8px 6px;
+    backdrop-filter: blur(6px);
+  }
+
+  .branding-logo {
+    max-height: 28px;
+  }
+
+  .branding-title {
+    font-size: 0.875rem;
+    line-height: 1.3;
+  }
+
+  .branding-tagline {
+    font-size: 0.6rem;
+    margin-top: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .central-branding,
+  .branding-inset {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

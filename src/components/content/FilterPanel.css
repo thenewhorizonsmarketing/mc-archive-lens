@@ -1,0 +1,306 @@
+/* FilterPanel Component Styles */
+
+.filter-panel {
+  background: #0C2340;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 2px solid #C99700;
+}
+
+.filter-panel--collapsed {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Header */
+.filter-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(201, 151, 0, 0.3);
+  gap: 1rem;
+}
+
+.filter-panel--collapsed .filter-panel__header {
+  border-bottom: none;
+}
+
+.filter-panel__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: #FFFFFF;
+}
+
+.filter-panel__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-panel__clear {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #C99700;
+  background: transparent;
+  border: 1px solid #C99700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-panel__clear:hover {
+  background: #C99700;
+  color: #0C2340;
+}
+
+.filter-panel__clear:focus-visible {
+  outline: 2px solid var(--color-primary, #2563eb);
+  outline-offset: 2px;
+}
+
+.filter-panel__toggle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #FFFFFF;
+  transition: all 0.2s ease;
+}
+
+.filter-panel__toggle:hover {
+  background: rgba(201, 151, 0, 0.2);
+  color: #FFFFFF;
+}
+
+.filter-panel__toggle:focus-visible {
+  outline: 2px solid var(--color-primary, #2563eb);
+  outline-offset: 2px;
+}
+
+.filter-panel__toggle-icon {
+  transition: transform 0.3s ease;
+}
+
+.filter-panel__toggle-icon--collapsed {
+  transform: rotate(-90deg);
+}
+
+/* Content */
+.filter-panel__content {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: slideDown 0.3s ease;
+}
+
+/* Filter Group */
+.filter-panel__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-panel__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Input Styles */
+.filter-panel__input,
+.filter-panel__select {
+  padding: 0.625rem 0.875rem;
+  font-size: 1rem;
+  color: #FFFFFF;
+  background: rgba(12, 35, 64, 0.6);
+  border: 1px solid rgba(201, 151, 0, 0.5);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.filter-panel__input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.filter-panel__select option {
+  background: #0C2340;
+  color: #FFFFFF;
+}
+
+.filter-panel__input:hover,
+.filter-panel__select:hover {
+  border-color: #C99700;
+}
+
+.filter-panel__input:focus,
+.filter-panel__select:focus {
+  outline: none;
+  border-color: #C99700;
+  box-shadow: 0 0 0 3px rgba(201, 151, 0, 0.2);
+}
+
+.filter-panel__input:disabled,
+.filter-panel__select:disabled {
+  background: rgba(12, 35, 64, 0.4);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Year Range */
+.filter-panel__year-range {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filter-panel__input--year {
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-panel__separator {
+  font-size: 0.875rem;
+  color: #FFFFFF;
+  flex-shrink: 0;
+}
+
+/* Select Dropdown */
+.filter-panel__select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23FFFFFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.875rem center;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+/* Animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .filter-panel__header {
+    padding: 0.875rem 1rem;
+  }
+
+  .filter-panel__title {
+    font-size: 1rem;
+  }
+
+  .filter-panel__content {
+    padding: 1rem;
+    gap: 1.25rem;
+  }
+
+  .filter-panel__clear {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .filter-panel__toggle {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* Show toggle button on mobile */
+  .filter-panel__toggle {
+    display: flex;
+  }
+}
+
+@media (min-width: 769px) {
+  /* Hide toggle button on desktop by default */
+  .filter-panel__toggle {
+    display: none;
+  }
+
+  /* Show toggle button if explicitly needed */
+  .filter-panel--collapsible .filter-panel__toggle {
+    display: flex;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .filter-panel {
+    border: 2px solid currentColor;
+  }
+
+  .filter-panel__input:focus,
+  .filter-panel__select:focus {
+    outline: 3px solid currentColor;
+    outline-offset: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .filter-panel,
+  .filter-panel__toggle-icon,
+  .filter-panel__content,
+  .filter-panel__input,
+  .filter-panel__select,
+  .filter-panel__clear {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Dark mode support (if needed) */
+@media (prefers-color-scheme: dark) {
+  .filter-panel {
+    background: #1a1a1a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  .filter-panel__header {
+    border-bottom-color: #333;
+  }
+
+  .filter-panel__title {
+    color: #f5f5f5;
+  }
+
+  .filter-panel__input,
+  .filter-panel__select {
+    background: #2a2a2a;
+    border-color: #404040;
+    color: #f5f5f5;
+  }
+
+  .filter-panel__input:hover,
+  .filter-panel__select:hover {
+    border-color: #505050;
+  }
+
+  .filter-panel__input:disabled,
+  .filter-panel__select:disabled {
+    background: #1a1a1a;
+  }
+
+  .filter-panel__toggle:hover {
+    background: #2a2a2a;
+  }
+}

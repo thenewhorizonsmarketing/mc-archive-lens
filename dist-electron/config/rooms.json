@@ -1,0 +1,76 @@
+{
+  "rooms": [
+    {
+      "id": "alumni",
+      "title": "Alumni",
+      "description": "Browse alumni records and class photos",
+      "icon": "/assets/icons/alumni.svg",
+      "route": "/alumni",
+      "position": "top-left",
+      "color": "#0E6B5C"
+    },
+    {
+      "id": "publications",
+      "title": "Publications",
+      "description": "Explore law review publications and journals",
+      "icon": "/assets/icons/publications.svg",
+      "route": "/publications",
+      "position": "top-center",
+      "color": "#6B3F2B"
+    },
+    {
+      "id": "photos",
+      "title": "Photos",
+      "description": "View historical photo collections",
+      "icon": "/assets/icons/photos.svg",
+      "route": "/photos",
+      "position": "top-right",
+      "color": "#CDAF63"
+    },
+    {
+      "id": "faculty",
+      "title": "Faculty",
+      "description": "Meet our distinguished faculty members",
+      "icon": "/assets/icons/faculty.svg",
+      "route": "/faculty",
+      "position": "middle-left",
+      "color": "#F5E6C8"
+    },
+    {
+      "id": "history",
+      "title": "History",
+      "description": "Discover the history of MC Law",
+      "icon": "/assets/icons/history.svg",
+      "route": "/history",
+      "position": "middle-right",
+      "color": "#8B4513"
+    },
+    {
+      "id": "achievements",
+      "title": "Achievements",
+      "description": "Notable achievements and awards",
+      "icon": "/assets/icons/achievements.svg",
+      "route": "/achievements",
+      "position": "bottom-left",
+      "color": "#DAA520"
+    },
+    {
+      "id": "events",
+      "title": "Events",
+      "description": "Past and upcoming events",
+      "icon": "/assets/icons/events.svg",
+      "route": "/events",
+      "position": "bottom-center",
+      "color": "#2F4F4F"
+    },
+    {
+      "id": "resources",
+      "title": "Resources",
+      "description": "Library and learning resources",
+      "icon": "/assets/icons/resources.svg",
+      "route": "/resources",
+      "position": "bottom-right",
+      "color": "#556B2F"
+    }
+  ]
+}

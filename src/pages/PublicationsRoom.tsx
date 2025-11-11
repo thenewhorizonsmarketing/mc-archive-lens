@@ -1,42 +1,238 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useContentDataWithUrl } from "@/hooks/useContentDataWithUrl";
+import { ContentList } from "@/components/content/ContentList";
+import { RecordCard } from "@/components/content/RecordCard";
+import { RecordDetail } from "@/components/content/RecordDetail";
+import { AdvancedFilterIntegration } from "@/components/filters/AdvancedFilterIntegration";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { PDFViewerDialog } from "@/components/PDFViewerDialog";
-import { PublicationsSearch } from "@/components/room-search/PublicationsSearch";
-import { samplePublications } from "@/lib/sampleData";
-import { PublicationRecord } from "@/types";
-import { Home, BookOpen, FileText } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Home, LayoutGrid, List, Search } from "lucide-react";
+import { toast } from "sonner";
+import { useSearch } from "@/lib/search-context";
 
 interface PublicationsRoomProps {
   onNavigateHome: () => void;
   searchQuery?: string;
   selectedResultName?: string;
+  enableAdvancedFilters?: boolean;
 }
 
-export default function PublicationsRoom({ onNavigateHome, searchQuery, selectedResultName }: PublicationsRoomProps) {
-  const [selectedPub, setSelectedPub] = useState<PublicationRecord | null>(null);
-  const [viewingPDF, setViewingPDF] = useState<PublicationRecord | null>(null);
+export default function PublicationsRoom({ onNavigateHome, searchQuery, selectedResultName, enableAdvancedFilters = false }: PublicationsRoomProps) {
+  // View mode state - default to list for publications
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  
+  // Local search query state
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery || "");
+  
+  // Get search context for initialization status
+  const { isInitialized, error: contextError } = useSearch();
+  
+  // Use content data hook with URL parameter support for database integration
+  const {
+    records,
+    loading,
+    error,
+    filters,
+    setFilters,
+    searchQuery: hookSearchQuery,
+    setSearchQuery,
+    currentPage,
+    totalPages,
+    totalRecords,
+    goToPage,
+    selectedRecord,
+    selectRecord,
+    clearSelection,
+    refresh,
+    retryCount,
+    isRetrying
+  } = useContentDataWithUrl({
+    contentType: 'publication',
+    pageSize: 50, // More items per page for list view
+    enableAutoRetry: true,
+    maxRetries: 3
+  });
 
-  // Auto-open selected result from global search
+  // Sync local search query with hook search query (from URL)
   useEffect(() => {
-    if (selectedResultName) {
-      const pubRecord = samplePublications.find(p => p.title === selectedResultName);
-      if (pubRecord) {
-        setTimeout(() => setSelectedPub(pubRecord), 300);
+    setLocalSearchQuery(hookSearchQuery);
+  }, [hookSearchQuery]);
+  
+  // Update search query when prop changes (from navigation)
+  useEffect(() => {
+    if (searchQuery) {
+      setLocalSearchQuery(searchQuery);
+      setSearchQuery(searchQuery);
+    }
+  }, [searchQuery, setSearchQuery]);
+
+  // Handle search selection from sessionStorage (from fullscreen search)
+  useEffect(() => {
+    // Safety check: ensure body styles are reset
+    if (document.body.classList.contains('fullscreen-search-active')) {
+      document.body.classList.remove('fullscreen-search-active');
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    }
+    
+    const searchSelectionStr = sessionStorage.getItem('searchSelection');
+    if (!searchSelectionStr || !isInitialized || records.length === 0) {
+      return;
+    }
+
+    try {
+      const searchSelection = JSON.parse(searchSelectionStr);
+      sessionStorage.removeItem('searchSelection');
+      
+      if (searchSelection.type !== 'publication') {
+        return;
+      }
+
+      // Find matching record by ID
+      const matchingRecord = records.find(r => r.id === searchSelection.id);
+      if (matchingRecord) {
+        setTimeout(() => {
+          selectRecord(matchingRecord.id);
+          toast.success(`Viewing ${matchingRecord.title}`);
+        }, 300);
+      } else {
+        toast.error('Publication not found');
+      }
+    } catch (error) {
+      console.error('Error processing search selection:', error);
+      sessionStorage.removeItem('searchSelection');
+    }
+  }, [records, isInitialized, selectRecord]);
+
+  // Auto-open selected result from props (legacy support)
+  useEffect(() => {
+    if (selectedResultName && records.length > 0 && !selectedRecord) {
+      const matchingRecord = records.find(r => r.title === selectedResultName);
+      if (matchingRecord) {
+        setTimeout(() => {
+          selectRecord(matchingRecord.id);
+          toast.success(`Viewing ${matchingRecord.title}`);
+        }, 300);
       }
     }
-  }, [selectedResultName]);
+  }, [selectedResultName, records, selectedRecord, selectRecord]);
 
-  const handleViewPDF = (pub: PublicationRecord) => {
-    setSelectedPub(null); // Close the detail dialog
-    setViewingPDF(pub); // Open PDF viewer
+  // Extract unique values for filters
+  const availableYears = useMemo(() => {
+    const years = new Set<number>();
+    records.forEach(record => {
+      if (record.type === 'publication' && 'year' in record.data) {
+        const year = record.data.year as number;
+        if (year) {
+          years.add(year);
+        }
+      }
+    });
+    return Array.from(years).sort((a, b) => a - b);
+  }, [records]);
+
+  const availableDepartments = useMemo(() => {
+    const departments = new Set<string>();
+    records.forEach(record => {
+      if (record.metadata?.department) {
+        departments.add(record.metadata.department);
+      }
+    });
+    return Array.from(departments).sort();
+  }, [records]);
+
+  const availablePublicationTypes = useMemo(() => {
+    const types = new Set<string>();
+    records.forEach(record => {
+      if (record.type === 'publication' && 'pub_name' in record.data) {
+        const pubName = record.data.pub_name as string;
+        if (pubName) {
+          types.add(pubName);
+        }
+      }
+    });
+    return Array.from(types).sort();
+  }, [records]);
+
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setLocalSearchQuery(query);
+    setSearchQuery(query);
   };
+
+  // Clear all filters
+  const handleClearAllFilters = () => {
+    setFilters({ type: 'publication' });
+    setLocalSearchQuery("");
+    setSearchQuery("");
+  };
+
+  // Paginated records
+  const paginatedRecords = useMemo(() => {
+    const startIndex = (currentPage - 1) * 50;
+    const endIndex = startIndex + 50;
+    return records.slice(startIndex, endIndex);
+  }, [records, currentPage]);
+
+  // Navigation between records
+  const handleNavigate = (direction: 'prev' | 'next') => {
+    if (!selectedRecord) return;
+    
+    const currentIndex = paginatedRecords.findIndex(r => r.id === selectedRecord.id);
+    if (currentIndex === -1) return;
+    
+    if (direction === 'prev' && currentIndex > 0) {
+      selectRecord(paginatedRecords[currentIndex - 1].id);
+    } else if (direction === 'next' && currentIndex < paginatedRecords.length - 1) {
+      selectRecord(paginatedRecords[currentIndex + 1].id);
+    }
+  };
+
+  // Loading state while database initializes
+  if (!isInitialized) {
+    return (
+      <div className="kiosk-container min-h-screen p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-xl text-muted-foreground">Initializing database...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state with retry option
+  if (contextError || (error && !loading && records.length === 0)) {
+    return (
+      <div className="kiosk-container min-h-screen p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center max-w-md">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h2 className="text-2xl font-bold mb-2">Database Error</h2>
+              <p className="text-muted-foreground mb-6">
+                {contextError || error || 'Failed to connect to database'}
+              </p>
+              <div className="flex gap-3 justify-center">
+                <Button variant="kiosk" size="touch" onClick={refresh}>
+                  Retry
+                </Button>
+                <Button variant="outline" size="touch" onClick={onNavigateHome}>
+                  <Home className="w-6 h-6 mr-2" />
+                  Home
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="kiosk-container min-h-screen p-8">
@@ -45,125 +241,139 @@ export default function PublicationsRoom({ onNavigateHome, searchQuery, selected
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-5xl font-bold mb-2">Publications</h1>
-            <p className="text-xl text-muted-foreground">
-              Amicus, Law Review, Legal Eye & More
+            <p className="text-xl text-muted-foreground" role="status" aria-live="polite" aria-atomic="true">
+              {totalRecords} {totalRecords === 1 ? 'publication' : 'publications'} found
+              {isRetrying && ` (Retrying... ${retryCount}/3)`}
             </p>
           </div>
-          <Button variant="kiosk" size="touch" onClick={onNavigateHome}>
-            <Home className="w-6 h-6 mr-2" />
-            Home
-          </Button>
+          <div className="flex gap-3">
+            {/* View Mode Toggle */}
+            <div className="flex gap-2 mr-2">
+              <Button 
+                variant={viewMode === 'list' ? 'kiosk' : 'outline'} 
+                size="touch"
+                onClick={() => setViewMode('list')}
+              >
+                <List className="w-6 h-6 mr-2" />
+                List
+              </Button>
+              <Button 
+                variant={viewMode === 'grid' ? 'kiosk' : 'outline'} 
+                size="touch"
+                onClick={() => setViewMode('grid')}
+              >
+                <LayoutGrid className="w-6 h-6 mr-2" />
+                Grid
+              </Button>
+            </div>
+
+            <Button variant="kiosk" size="touch" onClick={onNavigateHome}>
+              <Home className="w-6 h-6 mr-2" />
+              Home
+            </Button>
+          </div>
         </div>
 
-        {/* Publications Search */}
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative max-w-2xl">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground" aria-hidden="true" />
+            <input
+              type="text"
+              placeholder="Search publications by title or author..."
+              value={localSearchQuery}
+              onChange={handleSearchChange}
+              className="w-full pl-14 pr-4 py-4 text-lg border-2 border-border rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
+              aria-label="Search publications by title or author"
+              role="searchbox"
+            />
+          </div>
+        </div>
+
+        {/* Filter Panel */}
         <div className="mb-8">
-          <PublicationsSearch
-            initialQuery={searchQuery}
-            onResultSelect={(result) => {
-              // Get thumbnail and PDF path from search result
-              const thumbnail = result.thumbnail || result.thumbnailPath;
-              const pdfPath = result.data && 'pdf_path' in result.data ? result.data.pdf_path : null;
-              
-              // Find the matching publication record
-              let pubRecord = samplePublications.find(p => 
-                p.title === result.title || 
-                (result.data && 'title' in result.data && p.title === result.data.title)
-              );
-              
-              if (pubRecord) {
-                // Update with correct paths from search result
-                pubRecord = {
-                  ...pubRecord,
-                  thumb_path: thumbnail || pubRecord.thumb_path,
-                  pdf_path: pdfPath || pubRecord.pdf_path
-                };
-                setSelectedPub(pubRecord);
-              } else {
-                console.log('Selected publication search result:', result);
-              }
-            }}
+          <AdvancedFilterIntegration
+            contentType="publication"
+            filters={filters}
+            onFiltersChange={setFilters}
+            availableYears={availableYears}
+            availableDepartments={availableDepartments}
+            availablePublicationTypes={availablePublicationTypes}
+            enableAdvancedFilters={enableAdvancedFilters}
           />
         </div>
 
-        {/* Publications Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {samplePublications.map((pub) => (
-            <Card
-              key={pub.id}
-              className="p-6 cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-              onClick={() => setSelectedPub(pub)}
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-16 h-16 rounded-lg bg-secondary/10 flex items-center justify-center flex-shrink-0">
-                  <BookOpen className="w-8 h-8 text-secondary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-lg mb-1">{pub.pub_name}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{pub.volume_issue}</p>
-                  <p className="text-sm text-foreground line-clamp-2">{pub.description}</p>
-                </div>
-              </div>
-              {pub.page_count && (
-                <div className="mt-4 pt-4 border-t flex items-center gap-2 text-sm text-muted-foreground">
-                  <FileText className="w-4 h-4" />
-                  {pub.page_count} pages
-                </div>
-              )}
-            </Card>
+        {/* Content List */}
+        <ContentList
+          records={paginatedRecords}
+          contentType="publication"
+          loading={loading}
+          onSelectRecord={selectRecord}
+          viewMode={viewMode}
+          emptyMessage="No publications found"
+          emptyDescription="Try adjusting your filters or search query"
+          onClearFilters={handleClearAllFilters}
+        >
+          {paginatedRecords.map(record => (
+            <RecordCard
+              key={record.id}
+              record={record}
+              contentType="publication"
+              onClick={() => selectRecord(record.id)}
+              viewMode={viewMode}
+            />
           ))}
-        </div>
+        </ContentList>
 
-        {/* Detail Dialog */}
-        <Dialog open={!!selectedPub} onOpenChange={() => setSelectedPub(null)}>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle className="text-3xl">{selectedPub?.title}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 text-muted-foreground">
-                <span>{selectedPub?.volume_issue}</span>
-                <span>•</span>
-                <span>{selectedPub?.issue_date}</span>
-                {selectedPub?.page_count && (
-                  <>
-                    <span>•</span>
-                    <span>{selectedPub.page_count} pages</span>
-                  </>
-                )}
-              </div>
-              {selectedPub?.description && (
-                <p className="text-lg">{selectedPub.description}</p>
-              )}
-              <div className="flex flex-wrap gap-2 pt-4">
-                {selectedPub?.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 bg-muted rounded-full text-sm"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              <div className="pt-4 border-t">
-                <Button 
-                  variant="kiosk-gold" 
-                  size="touch" 
-                  className="w-full"
-                  onClick={() => selectedPub && handleViewPDF(selectedPub)}
-                >
-                  <FileText className="w-5 h-5 mr-2" />
-                  View PDF
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <nav className="mt-8 flex items-center justify-center gap-2" aria-label="Pagination navigation" role="navigation">
+            <Button
+              variant="outline"
+              size="touch"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              aria-label="Go to previous page"
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowLeft' && currentPage > 1) {
+                  e.preventDefault();
+                  goToPage(currentPage - 1);
+                }
+              }}
+            >
+              Previous
+            </Button>
+            <span className="text-lg px-4" aria-current="page" aria-label={`Page ${currentPage} of ${totalPages}`}>
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="touch"
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              aria-label="Go to next page"
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight' && currentPage < totalPages) {
+                  e.preventDefault();
+                  goToPage(currentPage + 1);
+                }
+              }}
+            >
+              Next
+            </Button>
+          </nav>
+        )}
 
-        {/* PDF Viewer */}
-        <PDFViewerDialog
-          publication={viewingPDF}
-          onClose={() => setViewingPDF(null)}
-        />
+        {/* Record Detail Modal */}
+        {selectedRecord && (
+          <RecordDetail
+            record={selectedRecord}
+            contentType="publication"
+            onClose={clearSelection}
+            onNavigate={handleNavigate}
+            showNavigation={paginatedRecords.length > 1}
+          />
+        )}
       </div>
     </div>
   );

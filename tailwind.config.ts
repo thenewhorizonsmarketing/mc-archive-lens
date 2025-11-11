@@ -57,11 +57,60 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // MC Law Brand Colors
+        "mc-blue": {
+          DEFAULT: "#0C2340",
+          light: "rgba(12, 35, 64, 0.8)",
+          dark: "rgba(12, 35, 64, 0.95)",
+        },
+        "mc-gold": {
+          DEFAULT: "#C99700",
+          light: "rgba(201, 151, 0, 0.8)",
+          glow: "rgba(201, 151, 0, 0.3)",
+        },
+        "celestial-blue": {
+          DEFAULT: "#69B3E7",
+        },
+        // Material Colors
+        glass: {
+          bg: "rgba(255, 255, 255, 0.1)",
+          border: "rgba(255, 255, 255, 0.2)",
+        },
+        wood: {
+          DEFAULT: "#8B4513",
+          dark: "#654321",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        primary: ["New Atten", "Source Sans 3", "Trebuchet MS", "sans-serif"],
+        "primary-bold": ["New Atten Bold", "Source Sans 3", "sans-serif"],
+        "primary-extra-bold": ["New Atten Extra Bold", "Source Sans 3", "sans-serif"],
+        secondary: ["PS Fournier Std", "Source Serif 4", "Georgia", "serif"],
+        "secondary-grand": ["PS Fournier Std Grand", "Source Serif 4", "serif"],
+      },
+      boxShadow: {
+        // Multi-layer shadow system
+        ambient: "0 2px 8px rgba(0, 0, 0, 0.04)",
+        direct: "0 4px 16px rgba(0, 0, 0, 0.12)",
+        contact: "0 1px 2px rgba(0, 0, 0, 0.2)",
+        // Combined elevation shadows
+        "elevation-sm": "0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.2)",
+        "elevation-md":
+          "0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.2)",
+        "elevation-lg":
+          "0 8px 32px rgba(0, 0, 0, 0.16), 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.2)",
+        "elevation-xl":
+          "0 16px 48px rgba(0, 0, 0, 0.24), 0 8px 32px rgba(0, 0, 0, 0.16), 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.2)",
+        // Gold glow shadow
+        "gold-glow": "0 0 20px rgba(201, 151, 0, 0.3), 0 0 40px rgba(201, 151, 0, 0.3)",
+      },
+      backdropBlur: {
+        xs: "2px",
       },
       keyframes: {
         "accordion-down": {

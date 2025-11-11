@@ -1,0 +1,582 @@
+/**
+ * Kiosk Layout Stability CSS
+ * Ensures Cumulative Layout Shift (CLS) < 0.1 for fullscreen kiosk search interface
+ * 
+ * Requirements: 7.1, 7.2, 7.3, 7.4, 7.5
+ */
+
+/* ===== CSS Containment Strategy ===== */
+
+/**
+ * Keyboard Container - Fixed positioning with CSS containment
+ * Requirements: 7.1, 7.2
+ */
+.touch-keyboard {
+  /* Fixed positioning prevents layout shift */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  
+  /* CSS containment prevents layout recalculation in parent */
+  contain: layout style paint;
+  
+  /* Reserve exact space to prevent shifts */
+  height: auto;
+  min-height: 280px; /* Calculated: 5 rows * 60px + 4 gaps * 8px + 2 * 16px padding */
+  
+  /* Prevent scrolling */
+  overflow: hidden;
+  
+  /* GPU acceleration for smooth rendering */
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/**
+ * Kiosk Search Interface - Main container with containment
+ * Requirements: 7.1, 7.3
+ */
+.kiosk-search-interface {
+  /* Full height container */
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  
+  /* CSS containment for performance */
+  contain: layout style;
+  
+  /* Prevent horizontal overflow */
+  overflow-x: hidden;
+  
+  /* Flexbox layout with fixed structure */
+  display: flex;
+  flex-direction: column;
+}
+
+/**
+ * Search Input Section - Fixed height to prevent shifts
+ * Requirements: 7.1, 7.3
+ */
+.search-input-section {
+  /* Fixed height prevents layout shift */
+  flex-shrink: 0;
+  min-height: 96px; /* 16px input height + 2 * 16px padding + borders */
+  
+  /* CSS containment */
+  contain: layout style;
+  
+  /* Prevent content reflow */
+  overflow: visible;
+}
+
+/**
+ * Filter Panel - Containment for expand/collapse
+ * Requirements: 7.1, 7.4
+ */
+.filter-panel {
+  /* Fixed positioning during expansion */
+  position: relative;
+  flex-shrink: 0;
+  
+  /* CSS containment */
+  contain: layout style;
+  
+  /* Reserve minimum space */
+  min-height: 64px; /* Header height */
+}
+
+/**
+ * Results Section - Scrollable with containment
+ * Requirements: 7.1, 7.3
+ */
+.results-section {
+  /* Flexible height, fills remaining space */
+  flex: 1;
+  
+  /* Enable scrolling */
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  /* CSS containment for scroll performance */
+  contain: layout style paint;
+  
+  /* Smooth scrolling */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  
+  /* Reserve minimum space to prevent shifts */
+  min-height: 200px;
+}
+
+/**
+ * Results Display - Prevent dynamic height changes
+ * Requirements: 7.3
+ */
+.results-display {
+  /* Full height of parent */
+  height: 100%;
+  
+  /* CSS containment */
+  contain: layout style;
+  
+  /* Prevent shifts during loading */
+  min-height: inherit;
+}
+
+/**
+ * Result Cards - Fixed dimensions
+ * Requirements: 7.3
+ */
+.result-card {
+  /* Minimum height prevents shifts */
+  min-height: 80px;
+  
+  /* CSS containment for each card */
+  contain: layout style paint;
+  
+  /* Prevent content overflow */
+  overflow: hidden;
+}
+
+/**
+ * Loading States - Reserve space
+ * Requirements: 7.3
+ */
+.results-loading,
+.results-empty,
+.results-error {
+  /* Reserve space to prevent shifts */
+  min-height: 400px;
+  
+  /* CSS containment */
+  contain: layout style;
+}
+
+/* ===== Optimized Transitions and Animations ===== */
+
+/**
+ * Use transform and opacity for animations (GPU-accelerated)
+ * Avoid layout-triggering properties (width, height, top, left, margin, padding)
+ * Requirements: 7.5
+ */
+
+/**
+ * Keyboard Appearance Animation
+ * Duration: 200ms (within 200-300ms requirement)
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .touch-keyboard {
+    animation: slideUpKeyboard 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@keyframes slideUpKeyboard {
+  from {
+    transform: translateY(100%) translateZ(0);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) translateZ(0);
+    opacity: 1;
+  }
+}
+
+/**
+ * Filter Panel Expand/Collapse Animation
+ * Duration: 200ms (within 200-300ms requirement)
+ */
+.filter-content {
+  /* Use transform for animation */
+  transform-origin: top;
+  
+  /* will-change for performance hint */
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .filter-content {
+    animation: expandPanel 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@keyframes expandPanel {
+  from {
+    transform: translateY(-8px) translateZ(0);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) translateZ(0);
+    opacity: 1;
+  }
+}
+
+/**
+ * Result Card Hover/Press Animation
+ * Duration: 150ms (within requirement)
+ */
+.result-card {
+  /* Use transform for hover effects */
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* will-change for performance */
+  will-change: transform;
+}
+
+.result-card:hover {
+  /* GPU-accelerated transform */
+  transform: translateY(-2px) translateZ(0);
+}
+
+.result-card:active,
+.result-card-pressed {
+  /* GPU-accelerated transform */
+  transform: scale(0.98) translateZ(0);
+}
+
+.result-card-navigating {
+  /* Fade out with opacity (GPU-accelerated) */
+  opacity: 0.6;
+  transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/**
+ * Touch Keyboard Key Press Animation
+ * Duration: 50ms (immediate feedback)
+ */
+.touch-keyboard__key {
+  /* Use transform for press effect */
+  transition: transform 50ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 50ms cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* will-change for performance */
+  will-change: transform;
+}
+
+.touch-keyboard__key:active,
+.touch-keyboard__key--pressed {
+  /* GPU-accelerated transform */
+  transform: scale(0.95) translateZ(0);
+}
+
+/**
+ * Filter Button Toggle Animation
+ * Duration: 100ms (visual feedback)
+ */
+.filter-section button {
+  /* Use transform for press effect */
+  transition: transform 100ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 100ms cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 100ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 100ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* will-change for performance */
+  will-change: transform;
+}
+
+.filter-section button:active {
+  /* GPU-accelerated transform */
+  transform: scale(0.96) translateZ(0);
+}
+
+/**
+ * Loading Spinner Animation
+ * Continuous rotation using transform
+ */
+.loading-spinner {
+  animation: spinnerRotate 800ms linear infinite;
+  
+  /* will-change for smooth rotation */
+  will-change: transform;
+}
+
+@keyframes spinnerRotate {
+  from {
+    transform: rotate(0deg) translateZ(0);
+  }
+  to {
+    transform: rotate(360deg) translateZ(0);
+  }
+}
+
+/**
+ * Skeleton Loading Animation
+ * Use transform for shimmer effect
+ */
+.skeleton-thumbnail,
+.skeleton-badge,
+.skeleton-title,
+.skeleton-subtitle {
+  /* will-change for performance */
+  will-change: background-position;
+}
+
+/* ===== Prevent Layout Shift During State Changes ===== */
+
+/**
+ * Search Status Messages - Fixed height
+ */
+#search-status {
+  /* Reserve space for screen reader announcements */
+  min-height: 1px;
+  contain: layout;
+}
+
+/**
+ * Error Messages - Fixed layout
+ */
+.error-message-container {
+  /* Fixed height prevents shifts */
+  min-height: 60px;
+  contain: layout style;
+}
+
+/**
+ * Clear Button - Absolute positioning to prevent shift
+ */
+.search-input-section .absolute {
+  /* Absolute positioning doesn't affect layout */
+  position: absolute;
+  contain: layout style paint;
+}
+
+/* ===== GPU Acceleration Hints ===== */
+
+/**
+ * Apply GPU acceleration to animated elements
+ */
+.touch-keyboard,
+.filter-content,
+.result-card,
+.touch-keyboard__key,
+.filter-section button,
+.loading-spinner {
+  /* Force GPU acceleration */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== Prevent Scrollbar Layout Shift ===== */
+
+/**
+ * Always show scrollbar to prevent layout shift
+ */
+.results-section {
+  /* Force scrollbar visibility */
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+/* Custom scrollbar styling (optional) */
+.results-section::-webkit-scrollbar {
+  width: 12px;
+}
+
+.results-section::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.3);
+}
+
+.results-section::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 6px;
+}
+
+.results-section::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* ===== Responsive Adjustments ===== */
+
+/**
+ * Tablet and smaller screens
+ */
+@media (max-width: 768px) {
+  .touch-keyboard {
+    /* Adjust keyboard height for smaller keys */
+    min-height: 240px; /* 5 rows * 50px + 4 gaps * 6px + 2 * 12px padding */
+  }
+  
+  .search-input-section {
+    /* Adjust for smaller input */
+    min-height: 88px;
+  }
+}
+
+/**
+ * Mobile screens
+ */
+@media (max-width: 480px) {
+  .touch-keyboard {
+    /* Further adjust for mobile */
+    min-height: 220px;
+  }
+  
+  .search-input-section {
+    min-height: 80px;
+  }
+  
+  .results-loading,
+  .results-empty,
+  .results-error {
+    /* Reduce reserved space on mobile */
+    min-height: 300px;
+  }
+}
+
+/* ===== Reduced Motion Support ===== */
+
+/**
+ * Disable animations for users who prefer reduced motion
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .touch-keyboard,
+  .filter-content,
+  .result-card,
+  .touch-keyboard__key,
+  .filter-section button {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .loading-spinner {
+    animation: none !important;
+  }
+  
+  .skeleton-thumbnail,
+  .skeleton-badge,
+  .skeleton-title,
+  .skeleton-subtitle {
+    animation: none !important;
+  }
+}
+
+/* ===== High Contrast Mode Support ===== */
+
+/**
+ * Ensure visibility in high contrast mode
+ */
+@media (prefers-contrast: high) {
+  .result-card,
+  .touch-keyboard__key,
+  .filter-section button {
+    /* Increase border visibility */
+    border-width: 2px;
+  }
+}
+
+/* ===== Print Styles ===== */
+
+/**
+ * Hide interactive elements when printing
+ */
+@media print {
+  .touch-keyboard,
+  .filter-panel {
+    display: none !important;
+  }
+  
+  .results-section {
+    overflow: visible !important;
+  }
+}
+
+/* ===== Performance Optimizations ===== */
+
+/**
+ * Optimize rendering performance
+ */
+.kiosk-search-interface * {
+  /* Prevent unnecessary repaints */
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Optimize text rendering */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/**
+ * Optimize image rendering
+ */
+.result-thumbnail img {
+  /* Prevent layout shift during image load */
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  
+  /* Optimize image rendering */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* ===== Safe Area Insets (for notched devices) ===== */
+
+/**
+ * Handle safe areas on devices with notches
+ */
+@supports (padding: max(0px)) {
+  .kiosk-search-interface {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+  
+  .touch-keyboard {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+/* ===== Prevent iOS Zoom on Input Focus ===== */
+
+/**
+ * Prevent iOS from zooming when focusing inputs
+ */
+@media (hover: none) and (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ===== Layout Shift Testing Helpers ===== */
+
+/**
+ * Uncomment these during development to visualize layout shifts
+ */
+/*
+.touch-keyboard {
+  outline: 2px solid red;
+}
+
+.search-input-section {
+  outline: 2px solid blue;
+}
+
+.filter-panel {
+  outline: 2px solid green;
+}
+
+.results-section {
+  outline: 2px solid orange;
+}
+
+.result-card {
+  outline: 1px solid purple;
+}
+*/

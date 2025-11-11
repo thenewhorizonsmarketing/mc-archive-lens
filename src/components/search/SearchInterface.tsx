@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, X, Filter, Loader2, AlertTriangle, Clock } from 'lucide-react';
 import { SearchErrorBoundary } from '@/components/error/SearchErrorBoundary';
+import { ErrorBoundary } from 'react-error-boundary';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +39,16 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
   maxResults = 50,
   debounceMs = 300
 }) => {
+  // Accessibility: Announce search status to screen readers
+  const announceSearchStatus = useCallback((status: string) => {
+    const announcer = document.querySelector('[aria-live="polite"]');
+    if (announcer) {
+      announcer.textContent = status;
+      setTimeout(() => {
+        announcer.textContent = '';
+      }, 1000);
+    }
+  }, []);
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState<FilterOptions>(initialFilters);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
@@ -51,6 +62,95 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
 
   // Use search context
   const { searchManager, isInitialized, error: contextError } = useSearch();
+
+  // Prevent browser autocomplete with readonly trick
+  useEffect(() => {
+    if (inputRef.current) {
+      // Make input readonly initially
+      inputRef.current.setAttribute('readonly', 'readonly');
+      
+      // Remove readonly after a short delay
+      const timer = setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.removeAttribute('readonly');
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Aggressively remove browser autocomplete UI and extension overlays
+  useEffect(() => {
+    const removeAutocompleteUI = () => {
+      // Remove any elements that appear at the top of the page
+      const bodyChildren = Array.from(document.body.children);
+      bodyChildren.forEach((child) => {
+        // Skip our app root and essential elements
+        if (
+          child.id === 'root' ||
+          child.tagName === 'SCRIPT' ||
+          child.tagName === 'STYLE' ||
+          child.tagName === 'LINK'
+        ) {
+          return;
+        }
+        
+        // Specifically target Scribe extension
+        if (
+          child.tagName === 'SCRIBE-SHADOW' ||
+          child.id === 'crxjs-ext' ||
+          child.getAttribute('data-crx') === 'okfkdaglfjjjfefdcppliegebpoegaii'
+        ) {
+          child.remove();
+          return;
+        }
+        
+        // Check if element is positioned at top
+        const style = window.getComputedStyle(child);
+        const position = style.position;
+        const top = style.top;
+        
+        if (
+          (position === 'absolute' || position === 'fixed') &&
+          (top === '0px' || top === '0')
+        ) {
+          child.remove();
+        }
+      });
+      
+      // Also hide shadow DOM content if it exists
+      const scribeShadow = document.querySelector('scribe-shadow');
+      if (scribeShadow && scribeShadow.shadowRoot) {
+        const shadowChildren = Array.from(scribeShadow.shadowRoot.children);
+        shadowChildren.forEach((child: any) => {
+          if (child.style) {
+            child.style.display = 'none';
+            child.style.visibility = 'hidden';
+            child.style.opacity = '0';
+          }
+        });
+      }
+    };
+
+    // Run immediately
+    removeAutocompleteUI();
+
+    // Run on interval to catch dynamically added elements (very aggressive)
+    const interval = setInterval(removeAutocompleteUI, 10);
+
+    // Also run on DOM mutations
+    const observer = new MutationObserver(removeAutocompleteUI);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: false
+    });
+
+    return () => {
+      clearInterval(interval);
+      observer.disconnect();
+    };
+  }, []);
   
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +160,14 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
 
   // Debounced search function
   const performSearch = useCallback(async (searchQuery: string, searchFilters: FilterOptions) => {
+    // Debug logging
+    console.log('[SearchInterface] performSearch called with:', {
+      query: searchQuery,
+      filters: searchFilters,
+      hasQuery: searchQuery && searchQuery.length > 0,
+      filterCount: Object.keys(searchFilters).filter(k => searchFilters[k as keyof FilterOptions]).length
+    });
+
     if (!searchManager || !searchQuery || searchQuery.length < 1) {
       setSearchResults([]);
       setTotalCount(0);
@@ -75,6 +183,8 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
       const results = await searchManager.searchAll(searchQuery, searchFilters, { limit: maxResults } as any);
       const endTime = Date.now();
       
+      console.log('[SearchInterface] Received', results.length, 'results in', (endTime - startTime), 'ms');
+      
       setSearchResults(results);
       setTotalCount(results.length);
       setSearchMetrics({
@@ -84,6 +194,9 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
         queryComplexity: 'simple',
         timestamp: Date.now()
       });
+      
+      // Announce results to screen readers
+      announceSearchStatus(`Found ${results.length} result${results.length !== 1 ? 's' : ''} for ${searchQuery}`);
     } catch (error) {
       console.error('Search error:', error);
       setSearchError(error instanceof Error ? error.message : 'Search failed');
@@ -154,6 +267,8 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
 
   // Handle result selection
   const handleResultSelect = useCallback((result: SearchResult) => {
+    console.log('[SearchInterface] handleResultSelect called with:', result.title);
+    
     // Add query to recent searches if it produced results
     if (query.trim()) {
       setRecentSearches(prev => {
@@ -162,6 +277,7 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
       });
     }
     
+    console.log('[SearchInterface] Calling parent onResultSelect...');
     onResultSelect?.(result);
   }, [query, onResultSelect]);
 
@@ -250,23 +366,60 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
       }}
       showDetails={process.env.NODE_ENV === 'development'}
     >
-      <div className={`search-interface ${className}`}>
+      <div 
+        className={`search-interface ${className}`}
+        role="search"
+        aria-label="Search interface for alumni, publications, photos, and faculty"
+      >
+      {/* Screen Reader Live Region */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      />
+      
+      {/* Skip to Results Link */}
+      <a href="#search-results" className="skip-to-content sr-only focus:not-sr-only">
+        Skip to search results
+      </a>
       {/* Search Input */}
-      <div className="relative">
-        <div className="relative flex items-center">
-          <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            ref={inputRef}
-            type="text"
-            placeholder={placeholder}
-            value={query}
-            onChange={(e) => handleQueryChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onFocus={handleInputFocus}
-            className="pl-10 pr-20 h-12 text-lg"
-            autoComplete="off"
-            autoFocus
-          />
+      <form 
+        autoComplete="off" 
+        onSubmit={(e) => e.preventDefault()}
+        data-form-type="other"
+        style={{ isolation: 'isolate', position: 'relative' }}
+      >
+        <div className="relative" style={{ isolation: 'isolate', contain: 'layout style' }}>
+          <div className="relative flex items-center">
+            <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              ref={inputRef}
+              type="text"
+              name={`search-query-${Math.random().toString(36).substring(7)}`}
+              placeholder={placeholder}
+              value={query}
+              onChange={(e) => handleQueryChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onFocus={handleInputFocus}
+              className="pl-10 pr-20 h-12 text-lg"
+              autoComplete="new-password"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              data-form-type="other"
+              data-lpignore="true"
+              data-app="true"
+              role="searchbox"
+              autoFocus
+              aria-label={showKeyboard ? "Search input - virtual keyboard available" : "Search input"}
+              aria-describedby={showKeyboard ? "keyboard-hint" : undefined}
+            />
+          {showKeyboard && (
+            <span id="keyboard-hint" className="sr-only">
+              Tap this field to show the virtual keyboard. Press Escape to hide the keyboard.
+            </span>
+          )}
           
           {/* Loading indicator */}
           {isLoading && (
@@ -288,7 +441,8 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
             </Button>
           )}
         </div>
-      </div>
+        </div>
+      </form>
 
       {/* On-Screen Keyboard - Positioned above suggestions, outside relative container */}
       {showKeyboard && keyboardVisible && keyboardPosition !== 'floating' && (
@@ -309,8 +463,8 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
         </div>
       )}
 
-      {/* Search Suggestions - Below keyboard */}
-      <div className="relative">
+      {/* Search Suggestions - Disabled to prevent layout shift */}
+      {/* <div className="relative">
         {showSuggestions && showSuggestionsPanel && (suggestions.length > 0 || recentSearches.length > 0) && (
           <SearchSuggestions
             ref={suggestionsRef}
@@ -320,7 +474,7 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
             className="mt-1"
           />
         )}
-      </div>
+      </div> */}
 
       {/* Filter Controls */}
       {showFilters && (
@@ -328,7 +482,13 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowFilterPanel(!showFilterPanel)}
+            onClick={() => {
+              setShowFilterPanel(!showFilterPanel);
+              // Hide keyboard when opening filters
+              if (!showFilterPanel && keyboardVisible) {
+                setKeyboardVisible(false);
+              }
+            }}
             className="flex items-center gap-2"
           >
             <Filter className="h-4 w-4" />
@@ -363,16 +523,23 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
 
       {/* Filter Panel */}
       {showFilters && showFilterPanel && (
-        <FilterControls
-          filters={filters}
-          onChange={handleFiltersChange}
-          availableOptions={searchResults.length > 0 ? undefined : undefined} // Would be computed from results
-          className="mt-4 p-4 border rounded-lg bg-muted/50"
-        />
+        <div className="mt-4" key="filter-panel">
+          <ErrorBoundary fallback={<div className="text-red-500 p-4">Filter panel error. Please refresh.</div>}>
+            <FilterControls
+              key={`filters-${Date.now()}`}
+              filters={filters}
+              onChange={handleFiltersChange}
+              availableOptions={searchResults.length > 0 ? undefined : undefined}
+              className="p-4 border rounded-lg bg-muted/50"
+              showKeyboard={false}
+              keyboardPosition="below"
+            />
+          </ErrorBoundary>
+        </div>
       )}
 
       {/* Search Results */}
-      <div className="mt-6">
+      <div className="mt-6 min-h-[400px]" id="search-results">
         {/* Empty state - show helpful message */}
         {!query && isInitialized && !contextError && (
           <div className="text-center py-12 text-muted-foreground">
@@ -469,7 +636,7 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
               results={searchResults}
               totalCount={totalCount}
               isLoading={isLoading}
-              error={searchError}
+              error={searchError || undefined}
               query={query}
               onResultSelect={handleResultSelect}
               metrics={searchMetrics}
@@ -479,34 +646,32 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
           </>
         )}
 
-        {/* Performance metrics (development only) */}
-        {process.env.NODE_ENV === 'development' && searchMetrics && (
-          <div className="mt-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
-            Query: {searchMetrics.queryTime.toFixed(1)}ms | 
-            Results: {searchMetrics.resultCount} | 
-            Cache: {searchMetrics.cacheHit ? 'HIT' : 'MISS'} |
-            Complexity: {searchMetrics.queryComplexity}
-          </div>
-        )}
+
       </div>
 
       {/* On-Screen Keyboard - Floating mode only */}
       {showKeyboard && keyboardVisible && keyboardPosition === 'floating' && (
-        <div className="fixed bottom-4 left-4 right-4 z-50 shadow-2xl">
-          <OnScreenKeyboard
-            onKeyPress={handleKeyboardKey}
-            className="w-full"
-          />
-          <div className="flex justify-end mt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setKeyboardVisible(false)}
-            >
-              Hide Keyboard
-            </Button>
+        <>
+          {/* Keyboard Container - appears at bottom without backdrop */}
+          <div className="fixed bottom-0 left-0 right-0 z-[9999] p-4 bg-gradient-to-t from-[#0C2340] via-[#0C2340] to-[#0C2340]/95 border-t-2 border-[#C99700]/30 shadow-2xl">
+            <div className="max-w-4xl mx-auto">
+              <OnScreenKeyboard
+                onKeyPress={handleKeyboardKey}
+                className="w-full"
+              />
+              <div className="flex justify-end mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setKeyboardVisible(false)}
+                  className="bg-background hover:bg-[#C99700] hover:text-white"
+                >
+                  Hide Keyboard
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
     </SearchErrorBoundary>

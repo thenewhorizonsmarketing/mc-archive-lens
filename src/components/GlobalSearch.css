@@ -1,0 +1,276 @@
+/**
+ * Global Search Component Styles
+ * MC Law branded search with glassmorphism effects
+ */
+
+.global-search-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: var(--z-board-content, 20);
+}
+
+/* Glassmorphism card base */
+.global-search-glass {
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.15),
+    rgba(255, 255, 255, 0.08)
+  );
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border-radius: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 24px 32px;
+  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.12));
+  transition: all var(--timing-normal, 300ms) var(--easing-smooth, cubic-bezier(0.4, 0, 0.2, 1));
+  position: relative;
+  overflow: hidden;
+}
+
+/* Collapsed state - clickable button with fixed height */
+.global-search-collapsed {
+  cursor: pointer;
+  padding: 28px 40px;
+  min-height: 120px;
+  max-height: 120px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* Prevent content reflow */
+  contain: layout style paint;
+}
+
+.global-search-collapsed:hover {
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.12)
+  );
+  border-color: var(--mc-gold, #C99700);
+  box-shadow: var(--shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.16)),
+              0 0 20px rgba(201, 151, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.global-search-collapsed:active {
+  transform: translateY(0);
+}
+
+.global-search-collapsed:focus-visible {
+  outline: 3px solid var(--mc-gold, #C99700);
+  outline-offset: 4px;
+}
+
+/* Expanded state - larger interface for better readability */
+.global-search-expanded {
+  padding: 0;
+  min-height: 500px;
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  width: 100%;
+  z-index: 100;
+  border-radius: 16px;
+  /* Smooth scrolling */
+  -webkit-overflow-scrolling: touch;
+  /* Prevent content reflow */
+  contain: layout style paint;
+}
+
+/* Header section */
+.global-search-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(180deg,
+    rgba(12, 35, 64, 0.3),
+    rgba(12, 35, 64, 0.1)
+  );
+}
+
+/* Close button */
+.global-search-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all var(--timing-fast, 200ms) var(--easing-smooth, cubic-bezier(0.4, 0, 0.2, 1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.global-search-close:hover {
+  background: rgba(201, 151, 0, 0.2);
+  border-color: var(--mc-gold, #C99700);
+  color: var(--mc-gold, #C99700);
+  transform: scale(1.05);
+}
+
+.global-search-close:active {
+  transform: scale(0.95);
+}
+
+.global-search-close:focus-visible {
+  outline: 2px solid var(--mc-gold, #C99700);
+  outline-offset: 2px;
+}
+
+/* Content section */
+.global-search-content {
+  padding: 24px 32px 32px;
+}
+
+/* Ensure keyboard takes full width */
+.global-search-content .keyboard-container,
+.global-search-content [class*="keyboard"],
+.global-search-content [class*="Keyboard"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Keyboard grid should be full width */
+.global-search-content .grid,
+.global-search-content [role="grid"] {
+  width: 100%;
+  max-width: none;
+}
+
+/* Color utilities for MC Law brand */
+.text-mc-gold {
+  color: var(--mc-gold, #C99700);
+}
+
+.text-celestial-blue {
+  color: var(--celestial-blue, #69B3E7);
+}
+
+/* Touch-friendly sizing */
+@media (hover: none) and (pointer: coarse) {
+  .global-search-collapsed {
+    min-height: 60px;
+    padding: 12px 24px;
+  }
+  
+  .global-search-close {
+    padding: 12px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .global-search-container {
+    max-width: 100%;
+  }
+  
+  .global-search-glass {
+    border-radius: 10px;
+    padding: 8px 12px;
+  }
+  
+  .global-search-collapsed {
+    padding: 8px 16px;
+    min-height: 44px;
+    max-height: 44px;
+    height: 44px;
+  }
+  
+  .global-search-expanded {
+    max-width: 100%;
+    min-height: 450px;
+    max-height: 65vh;
+  }
+  
+  .global-search-header {
+    padding: 20px 24px;
+  }
+  
+  .global-search-content {
+    padding: 20px 24px 24px;
+  }
+  
+  .global-search-collapsed .text-xl {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .global-search-glass {
+    border-radius: 8px;
+    padding: 6px 10px;
+  }
+  
+  .global-search-collapsed {
+    padding: 6px 12px;
+    min-height: 36px;
+    max-height: 36px;
+    height: 36px;
+  }
+  
+  .global-search-expanded {
+    max-width: 100%;
+    min-height: 400px;
+    max-height: 60vh;
+    border-radius: 12px;
+  }
+  
+  .global-search-header {
+    padding: 16px 20px;
+  }
+  
+  .global-search-content {
+    padding: 16px 20px 20px;
+  }
+}
+
+@media (max-width: 359px) {
+  .global-search-collapsed {
+    padding: 5px 10px;
+    min-height: 32px;
+    max-height: 32px;
+    height: 32px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .global-search-glass,
+  .global-search-close {
+    transition-duration: 0.01ms !important;
+  }
+  
+  .global-search-collapsed:hover {
+    transform: none;
+  }
+}
+
+/* GPU acceleration */
+.global-search-glass {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Remove backdrop - not needed */
+
+/* Large desktop screens */
+@media (min-width: 1400px) {
+  .global-search-expanded {
+    max-width: 1200px;
+  }
+  
+  .global-search-content {
+    padding: 28px 36px 36px;
+  }
+}

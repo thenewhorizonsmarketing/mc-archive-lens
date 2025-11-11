@@ -1,0 +1,275 @@
+/* TouchKeyboard Component Styles */
+
+.touch-keyboard {
+  /* Fixed positioning for layout stability */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  
+  /* CSS containment to prevent layout shift - Requirements: 7.1, 7.2 */
+  contain: layout style paint;
+  
+  /* Reserve exact space to prevent shifts */
+  min-height: 280px; /* 5 rows * 60px + 4 gaps * 8px + 2 * 16px padding */
+  
+  /* MC Law Navy background */
+  background-color: hsl(var(--kiosk-navy));
+  
+  /* Padding for comfortable spacing */
+  padding: 16px;
+  
+  /* Prevent scrolling */
+  overflow: hidden;
+  
+  /* Shadow for depth */
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  
+  /* GPU acceleration for smooth rendering - Requirements: 7.5 */
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.touch-keyboard__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* 8px spacing between rows */
+}
+
+.touch-keyboard__row {
+  display: flex;
+  justify-content: center;
+  gap: 8px; /* 8px spacing between keys */
+  align-items: center;
+}
+
+.touch-keyboard__key {
+  /* Minimum 60x60px touch target */
+  min-width: 60px;
+  min-height: 60px;
+  
+  /* Base styling */
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  
+  /* MC Law Gold background */
+  background-color: hsl(var(--kiosk-gold));
+  
+  /* High contrast text */
+  color: hsl(var(--primary-foreground));
+  font-size: 20px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* Cursor and interaction */
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Smooth transitions - Use transform and opacity only (Requirements: 7.5) */
+  transition: transform 50ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 50ms cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Performance hint for animations */
+  will-change: transform;
+  
+  /* Flexbox for centering */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Prevent text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  
+  /* Touch-friendly */
+  touch-action: manipulation;
+}
+
+/* Width modifiers for special keys */
+.touch-keyboard__key--width-1\.5 {
+  min-width: 98px; /* 60px + (60px * 0.5) + 8px gap */
+}
+
+.touch-keyboard__key--width-4 {
+  min-width: 280px; /* Space bar */
+}
+
+/* Hover state for touch-friendly feedback */
+.touch-keyboard__key:hover {
+  background-color: hsl(var(--kiosk-gold-dark));
+  /* Use transform for GPU acceleration - Requirements: 7.5 */
+  transform: translateY(-2px) translateZ(0);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Active/Pressed state - 50ms feedback duration (Requirements: 11.1, 11.2) */
+.touch-keyboard__key:active,
+.touch-keyboard__key--pressed {
+  background-color: hsl(var(--kiosk-gold) / 0.8);
+  /* Use transform for GPU acceleration - Requirements: 7.5 */
+  transform: scale(0.95) translateZ(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) inset;
+}
+
+/* Special key styling */
+.touch-keyboard__key--backspace,
+.touch-keyboard__key--clear,
+.touch-keyboard__key--enter {
+  background-color: hsl(var(--kiosk-navy));
+  border: 2px solid hsl(var(--kiosk-gold));
+  color: hsl(var(--kiosk-gold));
+}
+
+.touch-keyboard__key--backspace:hover,
+.touch-keyboard__key--clear:hover,
+.touch-keyboard__key--enter:hover {
+  background-color: hsl(var(--kiosk-navy-light));
+  border-color: hsl(var(--kiosk-gold-dark));
+  color: hsl(var(--kiosk-gold-dark));
+}
+
+.touch-keyboard__key--backspace:active,
+.touch-keyboard__key--clear:active,
+.touch-keyboard__key--enter:active,
+.touch-keyboard__key--backspace.touch-keyboard__key--pressed,
+.touch-keyboard__key--clear.touch-keyboard__key--pressed,
+.touch-keyboard__key--enter.touch-keyboard__key--pressed {
+  background-color: hsl(var(--kiosk-navy) / 0.8);
+  border-color: hsl(var(--kiosk-gold) / 0.8);
+  color: hsl(var(--kiosk-gold) / 0.8);
+}
+
+/* Space bar styling */
+.touch-keyboard__key--space {
+  background-color: hsl(var(--kiosk-navy-light));
+  border: 2px solid hsl(var(--kiosk-gold));
+}
+
+.touch-keyboard__key--space:hover {
+  background-color: hsl(var(--kiosk-navy-light) / 0.9);
+  border-color: hsl(var(--kiosk-gold-dark));
+}
+
+.touch-keyboard__key--space:active,
+.touch-keyboard__key--space.touch-keyboard__key--pressed {
+  background-color: hsl(var(--kiosk-navy) / 0.8);
+  border-color: hsl(var(--kiosk-gold) / 0.8);
+}
+
+/* Key label */
+.touch-keyboard__key-label {
+  pointer-events: none;
+  display: block;
+}
+
+/* Focus styles for accessibility */
+.touch-keyboard__key:focus-visible {
+  outline: 3px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Light theme variant */
+.touch-keyboard--light {
+  background-color: hsl(var(--muted));
+}
+
+.touch-keyboard--light .touch-keyboard__key {
+  background-color: hsl(var(--background));
+  color: hsl(var(--kiosk-navy));
+  border: 2px solid hsl(var(--border));
+}
+
+.touch-keyboard--light .touch-keyboard__key:hover {
+  background-color: hsl(var(--muted) / 0.5);
+  border-color: hsl(var(--kiosk-gold));
+}
+
+.touch-keyboard--light .touch-keyboard__key:active,
+.touch-keyboard--light .touch-keyboard__key--pressed {
+  background-color: hsl(var(--muted));
+}
+
+/* Dark theme variant */
+.touch-keyboard--dark {
+  background-color: hsl(var(--background));
+}
+
+.touch-keyboard--dark .touch-keyboard__key {
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border: 2px solid hsl(var(--border));
+}
+
+.touch-keyboard--dark .touch-keyboard__key:hover {
+  background-color: hsl(var(--muted));
+  border-color: hsl(var(--kiosk-gold));
+}
+
+.touch-keyboard--dark .touch-keyboard__key:active,
+.touch-keyboard--dark .touch-keyboard__key--pressed {
+  background-color: hsl(var(--background));
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .touch-keyboard {
+    padding: 12px;
+    /* Adjust reserved space for smaller keys */
+    min-height: 240px; /* 5 rows * 50px + 4 gaps * 6px + 2 * 12px padding */
+  }
+  
+  .touch-keyboard__container {
+    gap: 6px;
+  }
+  
+  .touch-keyboard__row {
+    gap: 6px;
+  }
+  
+  .touch-keyboard__key {
+    min-width: 50px;
+    min-height: 50px;
+    font-size: 18px;
+  }
+  
+  .touch-keyboard__key--width-1\.5 {
+    min-width: 82px;
+  }
+  
+  .touch-keyboard__key--width-4 {
+    min-width: 230px;
+  }
+}
+
+/* Keyboard appearance animation - 200ms duration (Requirements: 7.5) */
+@media (prefers-reduced-motion: no-preference) {
+  .touch-keyboard {
+    animation: slideUp 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    /* Use transform for GPU acceleration - Requirements: 7.5 */
+    transform: translateY(100%) translateZ(0);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) translateZ(0);
+    opacity: 1;
+  }
+}
+
+/* Ensure keyboard doesn't trigger scroll */
+body:has(.touch-keyboard) {
+  overflow: hidden;
+}

@@ -1,0 +1,260 @@
+/**
+ * Content Pages Accessibility Styles
+ * Ensures visual accessibility for content browsing pages
+ */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus indicators for all interactive elements */
+.record-card:focus,
+.record-card:focus-visible {
+  outline: 3px solid hsl(var(--primary));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px hsla(var(--primary), 0.2);
+}
+
+/* Enhanced focus for buttons */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid hsl(var(--primary));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px hsla(var(--primary), 0.2);
+}
+
+/* Remove default focus outline but keep for keyboard users */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .record-card {
+    border: 2px solid currentColor;
+  }
+
+  .record-card:hover,
+  .record-card:focus {
+    border-width: 3px;
+  }
+
+  button,
+  input,
+  select {
+    border: 2px solid currentColor;
+  }
+
+  .filter-panel {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Ensure sufficient color contrast */
+.record-card__title {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+
+.record-card__subtitle,
+.record-card__metadata {
+  color: hsl(var(--muted-foreground));
+  /* Ensure at least 4.5:1 contrast ratio */
+}
+
+/* Focus visible for pagination */
+nav[aria-label="Pagination navigation"] button:focus-visible {
+  outline: 3px solid hsl(var(--primary));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px hsla(var(--primary), 0.2);
+}
+
+/* Disabled state with sufficient contrast */
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Filter panel accessibility */
+.filter-panel__label {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.filter-panel__select:focus,
+.filter-panel__input:focus {
+  outline: 3px solid hsl(var(--primary));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px hsla(var(--primary), 0.2);
+  border-color: hsl(var(--primary));
+}
+
+/* Record detail modal accessibility */
+.record-detail-backdrop {
+  background-color: rgba(0, 0, 0, 0.75);
+}
+
+.record-detail__close:focus-visible,
+.record-detail__nav-button:focus-visible {
+  outline: 3px solid hsl(var(--primary));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px hsla(var(--primary), 0.2);
+}
+
+/* Ensure text is scalable */
+.record-card__title,
+.record-card__subtitle,
+.record-card__metadata,
+.record-card__snippet {
+  /* Use relative units for scalability */
+  font-size: inherit;
+  line-height: 1.5;
+}
+
+/* Loading state accessibility */
+.record-card__image-spinner {
+  border: 3px solid hsl(var(--muted));
+  border-top-color: hsl(var(--primary));
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty state accessibility */
+.content-list__empty {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.content-list__empty-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 0.5rem;
+}
+
+.content-list__empty-description {
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 1.5rem;
+}
+
+.content-list__empty-button:focus-visible {
+  outline: 3px solid hsl(var(--primary));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px hsla(var(--primary), 0.2);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .record-card__image-spinner {
+    animation: none;
+    border-top-color: hsl(var(--muted));
+  }
+}
+
+/* Touch target size for mobile */
+@media (max-width: 768px) {
+  button,
+  a,
+  .record-card {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .filter-panel__select,
+  .filter-panel__input {
+    min-height: 44px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+}
+
+/* Print styles */
+@media print {
+  .record-card:focus,
+  button:focus,
+  input:focus {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .record-detail-backdrop {
+    background-color: white;
+  }
+}
+
+/* Dark mode adjustments for accessibility */
+@media (prefers-color-scheme: dark) {
+  .record-card__title {
+    color: hsl(var(--foreground));
+  }
+
+  .record-card__subtitle,
+  .record-card__metadata {
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Ensure focus indicators are visible in dark mode */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  .record-card:focus-visible {
+    outline-color: hsl(var(--primary));
+    box-shadow: 0 0 0 4px hsla(var(--primary), 0.3);
+  }
+}
+
+/* Forced colors mode (Windows High Contrast) */
+@media (forced-colors: active) {
+  .record-card {
+    border: 1px solid CanvasText;
+  }
+
+  .record-card:focus {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  button:focus,
+  input:focus,
+  select:focus {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .record-card__image-fallback {
+    border: 1px solid CanvasText;
+  }
+}

@@ -7,14 +7,37 @@
     <meta name="description" content="Explore MC Law School's history, alumni records, publications, and photo archives through our interactive museum kiosk" />
     <meta name="author" content="MC Law School" />
 
-    <meta property="og:title" content="MC Museum & Archives - Interactive Kiosk" />
-    <meta property="og:description" content="Explore MC Law School's history, alumni records, publications, and photo archives" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <!-- Content Security Policy for offline operation (Requirement 8.3) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
+    
+    <!-- Block browser extensions and autocomplete UI -->
+    <style>
+      /* CRITICAL: Load first to block extension UI */
+      scribe-shadow,
+      #crxjs-ext,
+      [data-crx],
+      [id*="crx"],
+      [id*="ext"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        top: -99999px !important;
+        left: -99999px !important;
+        width: 0 !important;
+        height: 0 !important;
+        z-index: -1 !important;
+      }
+      
+      /* Block any fixed/absolute elements at top that aren't our app */
+      body > *:not(#root):not(script):not(style):not(link) {
+        &[style*="position: fixed"][style*="top: 0"],
+        &[style*="position: absolute"][style*="top: 0"] {
+          display: none !important;
+        }
+      }
+    </style>
   </head>
 
   <body>

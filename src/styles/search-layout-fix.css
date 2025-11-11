@@ -1,0 +1,157 @@
+/**
+ * Search Layout Stability Fix
+ * Prevents white bars and layout shifts from autocomplete/extensions
+ */
+
+/* Prevent any absolutely positioned elements at top of page from causing shifts */
+body {
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Force any top-positioned elements to not affect layout */
+body > *:not(#root):not(script):not(style):not(link) {
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  display: none !important;
+}
+
+/* Specifically target known extension elements */
+scribe-shadow,
+[data-crx],
+[id^="crxjs"],
+[class*="extension"],
+[class*="autocomplete-overlay"] {
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  display: none !important;
+}
+
+/* Ensure search interface container doesn't shift */
+.search-interface {
+  position: relative;
+  isolation: isolate;
+  contain: layout style paint;
+}
+
+/* Prevent input from triggering layout shifts */
+.search-interface input[type="text"],
+.search-interface input[type="search"] {
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure any dropdowns are positioned absolutely within container */
+.search-interface .absolute {
+  position: absolute !important;
+}
+
+/* Prevent suggestions from causing layout shift */
+.search-suggestions {
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin-top: 4px !important;
+  z-index: 50 !important;
+}
+
+/* Ensure keyboard doesn't cause shifts */
+.keyboard-container,
+[class*="keyboard"],
+[class*="Keyboard"] {
+  position: relative;
+  contain: layout style paint;
+}
+
+/* Fix for browser autocomplete dropdowns */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+  box-shadow: 0 0 0 30px transparent inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Disable browser autocomplete UI completely */
+input[autocomplete="off"],
+input[autocomplete="new-password"],
+input[data-lpignore="true"],
+input[data-form-type="other"] {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Hide any datalist dropdowns */
+datalist {
+  display: none !important;
+}
+
+/* Prevent form autocomplete overlays */
+form[autocomplete="off"] {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Additional protection for Chrome's autocomplete */
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  visibility: hidden !important;
+  display: none !important;
+  pointer-events: none !important;
+  position: absolute !important;
+}
+
+/* Prevent password manager overlays */
+input[type="text"][name*="search"],
+input[type="text"][placeholder*="search" i],
+input[type="text"][placeholder*="Search" i] {
+  -webkit-text-security: none !important;
+}
+
+/* Ensure main app container is stable */
+#root {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+/* Prevent any fixed/absolute elements from affecting flow */
+.global-search-container {
+  position: relative;
+  isolation: isolate;
+  contain: layout style;
+}
+
+/* Ensure expanded search doesn't cause shifts */
+.global-search-expanded {
+  position: relative;
+  isolation: isolate;
+  contain: layout style paint;
+}
+
+/* Reserve space for potential UI elements (defensive) */
+.search-interface::before {
+  content: '';
+  display: block;
+  height: 0;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}

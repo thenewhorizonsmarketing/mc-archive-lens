@@ -1,0 +1,549 @@
+/**
+ * Kiosk Search Comprehensive Stylesheet
+ * 
+ * Provides layout styles for fullscreen kiosk search mode including:
+ * - Fullscreen layout with proper positioning
+ * - Touch keyboard positioning and spacing
+ * - Filter panel styles
+ * - Result card styles
+ * - Touch-optimized interactions
+ * 
+ * Requirements: 1.2, 7.1, 7.2, 7.3, 7.4, 9.5, 11.1, 11.2, 11.4
+ */
+
+/* ============================================================================
+   CSS Custom Properties (Kiosk Theme Colors)
+   ============================================================================ */
+
+:root {
+  /* MC Law Navy - Primary brand color */
+  --kiosk-navy: 10 30 46;
+  --kiosk-navy-light: 26 54 80;
+  --kiosk-navy-dark: 5 15 23;
+  
+  /* MC Law Gold - Accent color */
+  --kiosk-gold: 198 146 20;
+  --kiosk-gold-light: 224 170 0;
+  --kiosk-gold-dark: 160 120 0;
+}
+
+/* ============================================================================
+   Fullscreen Layout Structure - Requirements: 1.2, 7.1
+   ============================================================================ */
+
+.kiosk-search-interface {
+  /* Full viewport dimensions */
+  width: 100%;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  
+  /* Flexbox layout */
+  display: flex;
+  flex-direction: column;
+  
+  /* CSS containment for performance */
+  contain: layout style;
+  
+  /* Prevent horizontal overflow */
+  overflow-x: hidden;
+  
+  /* Background */
+  background-color: hsl(var(--background));
+}
+
+/* Search input section - Fixed height - Requirements: 7.1, 7.3 */
+.kiosk-search-input-section {
+  flex-shrink: 0;
+  min-height: 96px;
+  padding: 16px;
+  background-color: hsl(var(--background));
+  border-bottom: 1px solid hsl(var(--border));
+  
+  /* CSS containment */
+  contain: layout style;
+}
+
+/* Main content area with filter and results */
+.kiosk-search-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0; /* Important for flex children with overflow */
+}
+
+/* ============================================================================
+   Keyboard Positioning - Requirements: 7.1, 7.2
+   ============================================================================ */
+
+/* Keyboard container - Fixed at bottom */
+.kiosk-search-interface .touch-keyboard {
+  /* Already styled in TouchKeyboard.css */
+  /* This ensures proper spacing above it */
+}
+
+/* Content area adjustment when keyboard is visible */
+.kiosk-search-interface--keyboard-visible .kiosk-search-main {
+  /* Reserve space for keyboard (280px) */
+  padding-bottom: 280px;
+}
+
+@media (max-width: 768px) {
+  .kiosk-search-interface--keyboard-visible .kiosk-search-main {
+    padding-bottom: 240px;
+  }
+}
+
+/* ============================================================================
+   Filter Panel Styles - Requirements: 4.1, 7.1, 7.4
+   ============================================================================ */
+
+/* Filter panel container - Already styled in FilterPanel.css */
+/* Additional kiosk-specific overrides */
+
+.kiosk-search-interface .filter-panel {
+  background-color: hsl(var(--muted) / 0.3);
+  border-bottom: 2px solid hsl(var(--kiosk-navy) / 0.1);
+}
+
+.kiosk-search-interface .filter-header {
+  background-color: transparent;
+}
+
+/* Filter toggle button in kiosk mode */
+.kiosk-search-interface .filter-header button {
+  background-color: hsl(var(--kiosk-navy));
+  color: hsl(var(--kiosk-gold));
+  border: 2px solid hsl(var(--kiosk-gold));
+  font-weight: 600;
+}
+
+.kiosk-search-interface .filter-header button:hover {
+  background-color: hsl(var(--kiosk-navy-light));
+  border-color: hsl(var(--kiosk-gold-light));
+}
+
+.kiosk-search-interface .filter-header button:active {
+  background-color: hsl(var(--kiosk-navy-dark));
+  transform: scale(0.98) translateZ(0);
+}
+
+/* Active filter count badge */
+.kiosk-search-interface .filter-header button span[aria-label*="active filter"] {
+  background-color: hsl(var(--kiosk-gold));
+  color: hsl(var(--kiosk-navy));
+}
+
+/* Filter section buttons in kiosk mode */
+.kiosk-search-interface .filter-section button[aria-pressed="false"] {
+  background-color: hsl(var(--background));
+  color: hsl(var(--kiosk-navy));
+  border: 2px solid hsl(var(--kiosk-navy) / 0.3);
+}
+
+.kiosk-search-interface .filter-section button[aria-pressed="true"] {
+  background-color: hsl(var(--kiosk-gold));
+  color: hsl(var(--kiosk-navy));
+  border: 2px solid hsl(var(--kiosk-gold));
+  box-shadow: 0 4px 8px rgba(198, 146, 20, 0.3);
+}
+
+.kiosk-search-interface .filter-section button[aria-pressed="true"]:hover {
+  background-color: hsl(var(--kiosk-gold-light));
+  box-shadow: 0 6px 10px rgba(198, 146, 20, 0.4);
+}
+
+/* ============================================================================
+   Result Card Styles - Requirements: 5.1, 5.2, 7.3
+   ============================================================================ */
+
+/* Results section - Scrollable area */
+.kiosk-search-interface .results-section {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  
+  /* CSS containment for scroll performance */
+  contain: layout style paint;
+  
+  /* Minimum height to prevent layout shift */
+  min-height: 200px;
+  
+  /* Padding for comfortable spacing */
+  padding: 16px;
+}
+
+/* Result cards in kiosk mode */
+.kiosk-search-interface .result-card {
+  background-color: hsl(var(--card));
+  border: 2px solid hsl(var(--kiosk-navy) / 0.1);
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  
+  /* Minimum touch target */
+  min-height: 80px;
+  
+  /* Spacing */
+  margin-bottom: 12px;
+  padding: 16px;
+  
+  /* Smooth transitions */
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.kiosk-search-interface .result-card:hover {
+  border-color: hsl(var(--kiosk-gold) / 0.5);
+  box-shadow: 0 4px 12px rgba(198, 146, 20, 0.15);
+  transform: translateY(-2px) translateZ(0);
+}
+
+.kiosk-search-interface .result-card:active,
+.kiosk-search-interface .result-card-pressed {
+  border-color: hsl(var(--kiosk-gold));
+  box-shadow: 0 2px 6px rgba(198, 146, 20, 0.2);
+  transform: scale(0.99) translateZ(0);
+  transition-duration: 50ms;
+}
+
+/* Result type badge in kiosk mode */
+.kiosk-search-interface .result-type-badge {
+  background-color: hsl(var(--kiosk-navy));
+  color: hsl(var(--kiosk-gold));
+  border: 1px solid hsl(var(--kiosk-gold) / 0.3);
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+/* Result title emphasis */
+.kiosk-search-interface .result-title {
+  color: hsl(var(--kiosk-navy));
+  font-weight: 700;
+  font-size: 18px;
+}
+
+/* Result chevron in kiosk mode */
+.kiosk-search-interface .result-chevron {
+  color: hsl(var(--kiosk-gold));
+}
+
+.kiosk-search-interface .result-card:hover .result-chevron {
+  color: hsl(var(--kiosk-gold-light));
+  transform: translateX(4px) translateZ(0);
+}
+
+/* ============================================================================
+   Search Input Styling - Requirements: 2.1, 2.2
+   ============================================================================ */
+
+.kiosk-search-interface .search-input {
+  width: 100%;
+  min-height: 60px;
+  padding: 16px 60px 16px 20px; /* Extra padding for clear button */
+  font-size: 20px;
+  font-weight: 500;
+  
+  background-color: hsl(var(--background));
+  border: 3px solid hsl(var(--kiosk-navy) / 0.2);
+  border-radius: 12px;
+  
+  color: hsl(var(--kiosk-navy));
+  
+  transition: border-color 150ms ease-in-out,
+              box-shadow 150ms ease-in-out;
+}
+
+.kiosk-search-interface .search-input:focus {
+  outline: none;
+  border-color: hsl(var(--kiosk-gold));
+  box-shadow: 0 0 0 4px hsl(var(--kiosk-gold) / 0.1);
+}
+
+.kiosk-search-interface .search-input::placeholder {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+}
+
+/* Clear button in kiosk mode */
+.kiosk-search-interface .search-clear-button {
+  background-color: hsl(var(--kiosk-navy) / 0.1);
+  color: hsl(var(--kiosk-navy));
+  border-radius: 8px;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.kiosk-search-interface .search-clear-button:hover {
+  background-color: hsl(var(--kiosk-navy) / 0.2);
+}
+
+.kiosk-search-interface .search-clear-button:active {
+  background-color: hsl(var(--kiosk-navy) / 0.3);
+  transform: scale(0.95) translateZ(0);
+}
+
+/* ============================================================================
+   Loading States - Requirements: 3.4, 11.3
+   ============================================================================ */
+
+.kiosk-search-interface .loading-spinner {
+  border-color: hsl(var(--kiosk-navy) / 0.2);
+  border-top-color: hsl(var(--kiosk-gold));
+}
+
+.kiosk-search-interface .loading-text {
+  color: hsl(var(--kiosk-navy));
+  font-weight: 600;
+}
+
+/* Skeleton loading in kiosk mode */
+.kiosk-search-interface .skeleton-thumbnail,
+.kiosk-search-interface .skeleton-badge,
+.kiosk-search-interface .skeleton-title,
+.kiosk-search-interface .skeleton-subtitle {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--kiosk-gold) / 0.1) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* ============================================================================
+   Error States - Requirements: 8.1, 8.3
+   ============================================================================ */
+
+.kiosk-search-interface .results-error {
+  background-color: hsl(var(--background));
+}
+
+.kiosk-search-interface .error-title {
+  color: hsl(var(--destructive));
+  font-weight: 700;
+}
+
+.kiosk-search-interface .error-retry-button {
+  background-color: hsl(var(--kiosk-navy));
+  color: hsl(var(--kiosk-gold));
+  border: 2px solid hsl(var(--kiosk-gold));
+  font-weight: 600;
+  min-height: 60px;
+  padding: 16px 32px;
+  font-size: 18px;
+}
+
+.kiosk-search-interface .error-retry-button:hover {
+  background-color: hsl(var(--kiosk-navy-light));
+  border-color: hsl(var(--kiosk-gold-light));
+}
+
+.kiosk-search-interface .error-retry-button:active {
+  background-color: hsl(var(--kiosk-navy-dark));
+  transform: scale(0.98) translateZ(0);
+}
+
+/* ============================================================================
+   Empty States
+   ============================================================================ */
+
+.kiosk-search-interface .results-empty {
+  background-color: hsl(var(--background));
+}
+
+.kiosk-search-interface .empty-title {
+  color: hsl(var(--kiosk-navy));
+  font-weight: 700;
+}
+
+.kiosk-search-interface .empty-suggestions {
+  background-color: hsl(var(--muted) / 0.3);
+  border: 2px solid hsl(var(--kiosk-navy) / 0.1);
+  border-radius: 12px;
+}
+
+/* ============================================================================
+   Responsive Touch Styles - Requirements: 9.5, 11.1, 11.2, 11.4
+   ============================================================================ */
+
+/* Touch-specific hover states */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices, rely on active states */
+  .kiosk-search-interface .result-card:hover {
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .kiosk-search-interface .filter-section button:hover {
+    transform: none;
+  }
+}
+
+/* Press state animations - 50ms immediate feedback */
+.kiosk-search-interface button:active,
+.kiosk-search-interface .result-card:active {
+  transition-duration: 50ms !important;
+}
+
+/* High contrast for readability - Requirements: 11.4 */
+@media (prefers-contrast: high) {
+  .kiosk-search-interface .result-card {
+    border-width: 3px;
+  }
+  
+  .kiosk-search-interface .search-input {
+    border-width: 4px;
+  }
+  
+  .kiosk-search-interface .filter-section button {
+    border-width: 3px;
+  }
+  
+  .kiosk-search-interface .result-title {
+    font-weight: 800;
+  }
+}
+
+/* ============================================================================
+   Responsive Breakpoints
+   ============================================================================ */
+
+/* Tablet and smaller */
+@media (max-width: 768px) {
+  .kiosk-search-input-section {
+    min-height: 88px;
+    padding: 12px;
+  }
+  
+  .kiosk-search-interface .search-input {
+    min-height: 56px;
+    font-size: 18px;
+    padding: 14px 56px 14px 18px;
+  }
+  
+  .kiosk-search-interface .result-card {
+    min-height: 88px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  
+  .kiosk-search-interface .result-title {
+    font-size: 17px;
+  }
+  
+  .kiosk-search-interface .results-section {
+    padding: 12px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .kiosk-search-input-section {
+    min-height: 80px;
+    padding: 10px;
+  }
+  
+  .kiosk-search-interface .search-input {
+    min-height: 52px;
+    font-size: 16px;
+    padding: 12px 52px 12px 16px;
+  }
+  
+  .kiosk-search-interface .result-card {
+    min-height: 80px;
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  
+  .kiosk-search-interface .result-title {
+    font-size: 16px;
+  }
+  
+  .kiosk-search-interface .results-section {
+    padding: 10px;
+  }
+  
+  .kiosk-search-interface .error-retry-button {
+    min-height: 52px;
+    padding: 14px 24px;
+    font-size: 16px;
+  }
+}
+
+/* ============================================================================
+   Accessibility - Reduced Motion
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .kiosk-search-interface *,
+  .kiosk-search-interface *::before,
+  .kiosk-search-interface *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .kiosk-search-interface .result-card:hover,
+  .kiosk-search-interface .result-card:active {
+    transform: none !important;
+  }
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+
+@media print {
+  .kiosk-search-interface .touch-keyboard,
+  .kiosk-search-interface .filter-panel,
+  .kiosk-search-interface .search-clear-button {
+    display: none !important;
+  }
+  
+  .kiosk-search-interface .results-section {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+  
+  .kiosk-search-interface .result-card {
+    page-break-inside: avoid;
+    border: 1px solid #000;
+    box-shadow: none;
+  }
+}
+
+/* ============================================================================
+   Focus Management
+   ============================================================================ */
+
+.kiosk-search-interface *:focus-visible {
+  outline: 3px solid hsl(var(--kiosk-gold));
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   Performance Optimizations
+   ============================================================================ */
+
+.kiosk-search-interface * {
+  /* Prevent unnecessary repaints */
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Optimize text rendering */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* GPU acceleration for animated elements */
+.kiosk-search-interface .result-card,
+.kiosk-search-interface .filter-section button,
+.kiosk-search-interface .search-clear-button,
+.kiosk-search-interface .error-retry-button {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}

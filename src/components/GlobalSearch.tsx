@@ -1,16 +1,14 @@
 // Global Search Component for Home Page
 import React, { useState, useCallback } from 'react';
-import { Search, Loader2, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Search, Loader2, AlertCircle, X } from 'lucide-react';
 import { SearchInterface } from '@/components/search/SearchInterface';
 import { SearchResult } from '@/lib/database/types';
 import { useSearch } from '@/lib/search-context';
 import { RoomType } from '@/types';
+import './GlobalSearch.css';
 
 interface GlobalSearchProps {
-  onNavigateToRoom: (room: RoomType, searchQuery?: string) => void;
+  onNavigateToRoom: (room: RoomType, searchQuery?: string, resultId?: string) => void;
   className?: string;
 }
 
@@ -49,82 +47,89 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   // Loading state
   if (!isInitialized) {
     return (
-      <Card className={`global-search ${className}`}>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center space-x-2 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span>Initializing search...</span>
+      <div className={`global-search-container ${className}`}>
+        <div className="global-search-glass">
+          <div className="flex items-center justify-center space-x-2">
+            <Loader2 className="h-5 w-5 animate-spin text-celestial-blue" />
+            <span className="text-white">Initializing search...</span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   // Error state
   if (error || !searchManager) {
     return (
-      <Card className={`global-search ${className}`}>
-        <CardContent className="p-6">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Search is currently unavailable. {error}
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
+      <div className={`global-search-container ${className}`}>
+        <div className="global-search-glass">
+          <div className="flex items-center space-x-2 text-red-300">
+            <AlertCircle className="h-5 w-5" />
+            <span>Search is currently unavailable. {error}</span>
+          </div>
+        </div>
+      </div>
     );
   }
 
   // Collapsed state - just a search button
   if (!isExpanded) {
     return (
-      <Card className={`global-search cursor-pointer hover:shadow-md transition-shadow ${className}`}>
-        <CardContent 
-          className="p-6"
+      <div className={`global-search-container ${className}`}>
+        <div 
+          className="global-search-glass global-search-collapsed"
           onClick={() => setIsExpanded(true)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setIsExpanded(true);
+            }
+          }}
+          aria-label="Open search across all collections"
         >
-          <div className="flex items-center justify-center space-x-3 text-lg">
-            <Search className="h-6 w-6 text-primary" />
-            <span className="font-medium">Search All Collections</span>
+          <div className="flex items-center justify-center space-x-3">
+            <Search className="h-7 w-7 text-mc-gold" />
+            <span className="text-xl font-semibold text-white">Search All Collections</span>
           </div>
-          <p className="text-center text-sm text-muted-foreground mt-2">
+          <p className="text-center text-sm text-celestial-blue mt-2">
             Search across alumni, publications, photos, and faculty
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   // Expanded state - full search interface
   return (
-    <Card className={`global-search ${className}`}>
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xl flex items-center space-x-2">
-            <Search className="h-5 w-5" />
-            <span>Search All Collections</span>
-          </CardTitle>
-          <Button
-            variant="ghost"
-            size="sm"
+    <div className={`global-search-container ${className}`}>
+      <div className="global-search-glass global-search-expanded">
+        <div className="global-search-header">
+          <div className="flex items-center space-x-3">
+            <Search className="h-6 w-6 text-mc-gold" />
+            <h2 className="text-xl font-bold text-white">Search All Collections</h2>
+          </div>
+          <button
+            className="global-search-close"
             onClick={() => setIsExpanded(false)}
+            aria-label="Minimize search"
           >
-            Minimize
-          </Button>
+            <X className="h-5 w-5" />
+          </button>
         </div>
-      </CardHeader>
-      <CardContent>
-        <SearchInterface
-          onResultSelect={handleResultSelect}
-          placeholder="Search alumni, publications, photos, and faculty..."
-          showFilters={true}
-          showKeyboard={true}
-          keyboardPosition="below"
-          maxResults={20}
-        />
-      </CardContent>
-    </Card>
+        <div className="global-search-content">
+          <SearchInterface
+            onResultSelect={handleResultSelect}
+            placeholder="Search alumni, publications, photos, and faculty..."
+            showFilters={false}
+            showKeyboard={true}
+            keyboardPosition="floating"
+            maxResults={20}
+          />
+        </div>
+      </div>
+    </div>
   );
 };
 

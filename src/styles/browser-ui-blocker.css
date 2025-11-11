@@ -1,0 +1,118 @@
+/**
+ * Browser UI Blocker
+ * Aggressively blocks browser-generated UI elements
+ */
+
+/* Create an invisible barrier at the top of the page */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  z-index: 999999;
+  pointer-events: none;
+  background: transparent;
+}
+
+/* Ensure our app content is above the barrier */
+#root {
+  position: relative;
+  z-index: 1000000 !important;
+  pointer-events: auto;
+}
+
+/* Hide any element that tries to appear at the very top */
+body > *:not(#root):not(script):not(style):not(link) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Force hide any absolutely or fixed positioned elements at top */
+*[style*="position: absolute"],
+*[style*="position: fixed"] {
+  &:not([data-app]):not([class*="search"]):not([class*="modal"]):not([class*="dialog"]):not([class*="toast"]):not([role="dialog"]) {
+    &[style*="top: 0"],
+    &[style*="top:0"] {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+    }
+  }
+}
+
+/* Hide any white background elements that appear at top */
+*[style*="background"] {
+  &[style*="position: absolute"][style*="top: 0"],
+  &[style*="position: fixed"][style*="top: 0"] {
+    &:not([data-app]):not([class*="search"]):not([class*="modal"]) {
+      display: none !important;
+      visibility: hidden !important;
+    }
+  }
+}
+
+/* Specifically target Chrome's autocomplete dropdown */
+div[style*="position: absolute"][style*="background-color: rgb(255, 255, 255)"],
+div[style*="position: fixed"][style*="background-color: rgb(255, 255, 255)"],
+div[style*="position: absolute"][style*="background: white"],
+div[style*="position: fixed"][style*="background: white"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Hide any dropdown-like elements */
+div:not([id]):not([class]):not([data-app]) {
+  &[style*="position: absolute"],
+  &[style*="position: fixed"] {
+    display: none !important;
+  }
+}
+
+/* Prevent any element from rendering above z-index 1000000 */
+* {
+  max-z-index: 1000000 !important;
+}
+
+/* Force hide browser-generated listboxes */
+[role="listbox"]:not([data-app]),
+[role="combobox"]:not([data-app]) {
+  display: none !important;
+  visibility: hidden !important;
+  position: absolute !important;
+  top: -99999px !important;
+  left: -99999px !important;
+}
+
+
+/* ===== Block Specific Browser Extensions ===== */
+
+/* Hide Scribe extension UI */
+scribe-shadow,
+#crxjs-ext,
+[data-crx="okfkdaglfjjjfefdcppliegebpoegaii"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  top: -99999px !important;
+  left: -99999px !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Hide any shadow DOM elements at top */
+*[id*="crx"],
+*[id*="ext"],
+*[data-crx] {
+  &[style*="position: fixed"][style*="top: 0"] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}

@@ -1,0 +1,93 @@
+.room-card-grid-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.room-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 16px;
+  contain: layout style;
+  transform: translateZ(0); /* Force GPU layer */
+}
+
+.room-card-grid nav {
+  display: contents;
+}
+
+/* Responsive breakpoints */
+/* Tablet breakpoint (768px - 1024px) - Maintain 2x2 grid */
+@media (max-width: 1024px) {
+  .room-card-grid {
+    gap: 16px;
+    padding: 0 12px;
+    max-width: 800px; /* Slightly reduce max width for tablets */
+  }
+}
+
+/* Tablet landscape (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .room-card-grid {
+    gap: 14px;
+    padding: 0 16px;
+    max-width: 750px;
+  }
+}
+
+/* Tablet portrait (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .room-card-grid {
+    gap: 12px;
+    padding: 0 10px;
+    max-width: 600px;
+  }
+}
+
+/* Tablet portrait and smaller (< 900px) */
+@media (max-width: 900px) {
+  .room-card-grid {
+    gap: 14px;
+    padding: 0 10px;
+  }
+}
+
+/* Mobile breakpoint (< 768px) - Stack vertically */
+@media (max-width: 768px) {
+  .room-card-grid {
+    grid-template-columns: 1fr; /* Single column layout */
+    gap: 24px;
+    padding: 0 16px;
+    max-width: 500px; /* Constrain width for better readability */
+  }
+  
+  .room-card-grid-container {
+    padding: 0 12px;
+  }
+}
+
+/* Small mobile devices (< 480px) */
+@media (max-width: 480px) {
+  .room-card-grid {
+    gap: 20px;
+    padding: 0 12px;
+  }
+  
+  .room-card-grid-container {
+    padding: 0 8px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .room-card-grid,
+  .room-card-grid * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

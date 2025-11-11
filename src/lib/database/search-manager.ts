@@ -486,12 +486,18 @@ export class SearchManager {
   }
 
   private formatAlumniResult(row: any): AlumniResult {
+    // Construct proper photo path with year directory
+    const photoFile = row.portrait_path || row.composite_image_path;
+    const thumbnailPath = photoFile && row.class_year 
+      ? `/photos/${row.class_year}/${photoFile}` 
+      : undefined;
+    
     return {
       id: row.id.toString(),
       type: 'alumni',
       title: row.full_name,
       subtitle: `Class of ${row.class_year}${row.role ? ` • ${row.role}` : ''}`,
-      thumbnailPath: row.portrait_path || row.composite_image_path,
+      thumbnailPath,
       relevanceScore: row.relevance_score || 1.0,
       data: {
         id: row.id,
@@ -508,12 +514,15 @@ export class SearchManager {
   }
 
   private formatPublicationResult(row: any): PublicationResult {
+    // Construct proper thumbnail path
+    const thumbnailPath = row.thumb_path ? `/publications/thumbnails/${row.thumb_path}` : undefined;
+    
     return {
       id: row.id.toString(),
       type: 'publication',
       title: row.title,
       subtitle: `${row.pub_name}${row.volume_issue ? ` • ${row.volume_issue}` : ''}`,
-      thumbnailPath: row.thumb_path,
+      thumbnailPath,
       relevanceScore: row.relevance_score || 1.0,
       data: {
         id: row.id,
@@ -530,12 +539,15 @@ export class SearchManager {
   }
 
   private formatPhotoResult(row: any): PhotoResult {
+    // Construct proper image path
+    const thumbnailPath = row.image_path ? `/photos/${row.image_path}` : undefined;
+    
     return {
       id: row.id.toString(),
       type: 'photo',
       title: row.title,
       subtitle: `${row.collection}${row.year_or_decade ? ` • ${row.year_or_decade}` : ''}`,
-      thumbnailPath: row.image_path,
+      thumbnailPath,
       relevanceScore: row.relevance_score || 1.0,
       data: {
         id: row.id,
@@ -550,12 +562,15 @@ export class SearchManager {
   }
 
   private formatFacultyResult(row: any): FacultyResult {
+    // Construct proper headshot path
+    const thumbnailPath = row.headshot_path ? `/faculty/headshots/${row.headshot_path}` : undefined;
+    
     return {
       id: row.id.toString(),
       type: 'faculty',
       title: row.full_name,
       subtitle: `${row.title}${row.department ? ` • ${row.department}` : ''}`,
-      thumbnailPath: row.headshot_path,
+      thumbnailPath,
       relevanceScore: row.relevance_score || 1.0,
       data: {
         id: row.id,

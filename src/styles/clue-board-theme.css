@@ -1,0 +1,457 @@
+/**
+ * MC Law Clue Board Theme
+ * Brand colors and design system for 3D Clue board homepage
+ */
+
+:root {
+  /* ===== MC Law Primary Brand Colors ===== */
+  --mc-blue: #0C2340;           /* PANTONE 289 - Primary Blue */
+  --mc-gold: #C99700;           /* PANTONE 117 - Choctaw Gold */
+  --celestial-blue: #69B3E7;    /* PANTONE 292 - Accent Blue */
+  
+  /* ===== Derived Color Variations ===== */
+  --mc-blue-light: rgba(12, 35, 64, 0.8);
+  --mc-blue-dark: rgba(12, 35, 64, 0.95);
+  --mc-blue-transparent: rgba(12, 35, 64, 0.1);
+  
+  --mc-gold-light: rgba(201, 151, 0, 0.8);
+  --mc-gold-glow: rgba(201, 151, 0, 0.3);
+  --mc-gold-transparent: rgba(201, 151, 0, 0.1);
+  
+  --celestial-blue-light: rgba(105, 179, 231, 0.8);
+  --celestial-blue-transparent: rgba(105, 179, 231, 0.1);
+  
+  /* ===== Material Colors ===== */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-bg-hover: rgba(255, 255, 255, 0.15);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-border-hover: rgba(201, 151, 0, 0.6);
+  
+  --wood-brown: #8B4513;
+  --wood-dark: #654321;
+  --wood-light: #A0522D;
+  
+  /* ===== Typography ===== */
+  --font-primary: 'New Atten', 'Source Sans 3', 'Trebuchet MS', sans-serif;
+  --font-primary-bold: 'New Atten Bold', 'Source Sans 3', sans-serif;
+  --font-primary-extra-bold: 'New Atten Extra Bold', 'Source Sans 3', sans-serif;
+  --font-secondary: 'PS Fournier Std', 'Source Serif 4', 'Georgia', serif;
+  --font-secondary-grand: 'PS Fournier Std Grand', 'Source Serif 4', serif;
+  
+  /* ===== Multi-Layer Shadow System ===== */
+  /* Ambient Shadow - Soft, diffused */
+  --shadow-ambient: 0 2px 8px rgba(0, 0, 0, 0.04);
+  
+  /* Direct Shadow - Stronger, directional */
+  --shadow-direct: 0 4px 16px rgba(0, 0, 0, 0.12);
+  
+  /* Contact Shadow - Darkest, closest to surface */
+  --shadow-contact: 0 1px 2px rgba(0, 0, 0, 0.2);
+  
+  /* Combined Elevation Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16), 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.24), 0 8px 32px rgba(0, 0, 0, 0.16), 0 4px 16px rgba(0, 0, 0, 0.12);
+  
+  /* Gold Glow Shadow */
+  --shadow-gold-glow: 0 0 20px rgba(201, 151, 0, 0.3), 0 0 40px rgba(201, 151, 0, 0.2);
+  
+  /* ===== Animation Timing ===== */
+  --timing-fast: 200ms;
+  --timing-normal: 300ms;
+  --timing-slow: 600ms;
+  
+  --easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-zoom: cubic-bezier(0.43, 0.13, 0.23, 0.96);
+  --easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* ===== 3D Perspective ===== */
+  --perspective: 1200px;
+  --perspective-origin: center center;
+  
+  /* ===== Z-Index Layers ===== */
+  --z-board-frame: 10;
+  --z-board-content: 20;
+  --z-room-card: 30;
+  --z-room-card-hover: 40;
+  --z-room-card-zoom: 50;
+  --z-central-branding: 25;
+}
+
+/* ===== Global Styles ===== */
+* {
+  box-sizing: border-box;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Reduced motion support - Global override for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  /* Ensure Framer Motion respects reduced motion */
+  html {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* GPU acceleration for animated elements */
+.gpu-accelerated {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* 3D transform context */
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* ===== Fullscreen Search Button ===== */
+.fullscreen-search-button-wrapper {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+  position: relative;
+  z-index: 35; /* Above room cards but below hover states */
+}
+
+.fullscreen-search-button {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 80px;
+  padding: 20px 32px;
+  
+  /* Touch-friendly sizing - exceeds 60x60px minimum */
+  min-width: 280px;
+  
+  /* Visual styling with MC Law branding */
+  background: linear-gradient(135deg, 
+    var(--mc-blue) 0%, 
+    var(--mc-blue-dark) 100%
+  );
+  border: 2px solid var(--mc-gold);
+  border-radius: 16px;
+  
+  /* Glass effect */
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    var(--shadow-md),
+    0 0 30px rgba(201, 151, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  
+  /* Typography */
+  color: white;
+  font-family: var(--font-primary-bold);
+  
+  /* Interaction */
+  cursor: pointer;
+  transition: all var(--timing-normal) var(--easing-smooth);
+  
+  /* Performance */
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
+  contain: layout style paint;
+}
+
+.fullscreen-search-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--mc-gold);
+  transition: transform var(--timing-normal) var(--easing-smooth);
+}
+
+.fullscreen-search-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.fullscreen-search-hint {
+  font-size: 0.875rem;
+  font-family: var(--font-primary);
+  font-weight: 400;
+  color: var(--celestial-blue);
+  opacity: 0.9;
+  text-align: center;
+}
+
+/* Hover state - for mouse users */
+.fullscreen-search-button:hover {
+  transform: translateY(-2px) scale(1.02);
+  border-color: var(--mc-gold);
+  box-shadow: 
+    var(--shadow-lg),
+    var(--shadow-gold-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.fullscreen-search-button:hover .fullscreen-search-icon {
+  transform: scale(1.1);
+}
+
+/* Active/pressed state - for touch users */
+.fullscreen-search-button:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 
+    var(--shadow-sm),
+    0 0 20px rgba(201, 151, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Focus state for keyboard navigation */
+.fullscreen-search-button:focus-visible {
+  outline: 3px solid var(--mc-gold);
+  outline-offset: 4px;
+}
+
+/* Touch feedback - visual indication */
+@media (hover: none) and (pointer: coarse) {
+  .fullscreen-search-button:active {
+    background: linear-gradient(135deg, 
+      var(--mc-blue-dark) 0%, 
+      var(--mc-blue) 100%
+    );
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .fullscreen-search-button-wrapper {
+    padding: 0 16px;
+  }
+  
+  .fullscreen-search-button {
+    min-height: 72px;
+    padding: 16px 24px;
+  }
+  
+  .fullscreen-search-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .fullscreen-search-text {
+    font-size: 1.25rem;
+  }
+  
+  .fullscreen-search-hint {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .fullscreen-search-button-wrapper {
+    padding: 0 12px;
+  }
+  
+  .fullscreen-search-button {
+    min-height: 68px;
+    padding: 14px 20px;
+    gap: 10px;
+  }
+  
+  .fullscreen-search-icon {
+    width: 26px;
+    height: 26px;
+  }
+  
+  .fullscreen-search-text {
+    font-size: 1.125rem;
+  }
+  
+  .fullscreen-search-hint {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .fullscreen-search-button {
+    min-height: 64px;
+    padding: 12px 16px;
+    gap: 8px;
+    min-width: 240px;
+  }
+  
+  .fullscreen-search-icon {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .fullscreen-search-text {
+    font-size: 1rem;
+  }
+  
+  .fullscreen-search-hint {
+    font-size: 0.6875rem;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .fullscreen-search-button {
+    transition: none;
+  }
+  
+  .fullscreen-search-button:hover {
+    transform: none;
+  }
+  
+  .fullscreen-search-button:active {
+    transform: none;
+  }
+  
+  .fullscreen-search-icon {
+    transition: none;
+  }
+}
+
+/* ===== Fullscreen Search Button Styles ===== */
+.fullscreen-search-button-wrapper {
+  position: relative;
+  z-index: 100;
+  margin: 2rem auto;
+  max-width: 600px;
+  padding: 0 1rem;
+}
+
+.fullscreen-search-button {
+  width: 100%;
+  min-height: 80px;
+  background: linear-gradient(135deg, var(--mc-blue) 0%, var(--mc-blue-dark) 100%);
+  border: 2px solid var(--mc-gold);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 200ms ease;
+  box-shadow: 
+    var(--shadow-ambient),
+    var(--shadow-direct),
+    0 0 20px var(--mc-gold-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+.fullscreen-search-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 500ms ease;
+}
+
+.fullscreen-search-button:hover {
+  transform: translateY(-2px);
+  border-color: var(--mc-gold);
+  box-shadow: 
+    var(--shadow-ambient),
+    var(--shadow-direct),
+    0 0 30px var(--mc-gold-glow),
+    0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.fullscreen-search-button:hover::before {
+  left: 100%;
+}
+
+.fullscreen-search-button:active {
+  transform: translateY(0);
+  box-shadow: 
+    var(--shadow-contact),
+    0 0 15px var(--mc-gold-glow);
+}
+
+.fullscreen-search-button:focus-visible {
+  outline: 3px solid var(--mc-gold);
+  outline-offset: 4px;
+}
+
+.fullscreen-search-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--mc-gold);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.fullscreen-search-text {
+  font-family: var(--font-primary-bold);
+  font-size: 1.5rem;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.fullscreen-search-hint {
+  font-family: var(--font-primary);
+  font-size: 0.875rem;
+  color: var(--celestial-blue);
+  opacity: 0.9;
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .fullscreen-search-button {
+    min-height: 100px;
+  }
+  
+  .fullscreen-search-button:active {
+    background: linear-gradient(135deg, var(--mc-blue-dark) 0%, var(--mc-blue) 100%);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .fullscreen-search-button-wrapper {
+    margin: 1rem auto;
+  }
+  
+  .fullscreen-search-button {
+    min-height: 90px;
+    padding: 1.25rem 1.5rem;
+  }
+  
+  .fullscreen-search-text {
+    font-size: 1.25rem;
+  }
+  
+  .fullscreen-search-hint {
+    font-size: 0.75rem;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .fullscreen-search-button {
+    transition: none;
+  }
+  
+  .fullscreen-search-button::before {
+    display: none;
+  }
+}

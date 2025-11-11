@@ -23,8 +23,12 @@ export class DatabaseManager {
   private async initializeSQL(): Promise<void> {
     try {
       this.SQL = await initSqlJs({
-        // Load the wasm file from CDN or local path
-        locateFile: (file: string) => `https://sql.js.org/dist/${file}`
+        // Load the wasm file from local node_modules (Requirement 8.3 - offline operation)
+        locateFile: (file: string) => {
+          // In production, the wasm file should be bundled with the app
+          // Vite will handle copying it to the dist folder
+          return `/node_modules/sql.js/dist/${file}`;
+        }
       });
     } catch (error) {
       throw new DatabaseError(`Failed to initialize SQL.js: ${error}`);

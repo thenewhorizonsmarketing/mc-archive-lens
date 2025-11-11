@@ -99,10 +99,23 @@ export const ResultCard: React.FC<ResultCardProps> = ({
     return items;
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('[ResultCard] Card clicked:', result.title, 'Event:', e.type);
+    console.log('[ResultCard] Full result data:', result);
+    onClick();
+  };
+
+  console.log('[ResultCard] Rendering card for:', result.title);
+
   return (
     <Card 
-      className={`result-card cursor-pointer hover:shadow-md transition-shadow ${className}`}
-      onClick={onClick}
+      className={`result-card cursor-pointer hover:shadow-md transition-shadow border-2 border-red-500 ${className}`}
+      onClick={handleClick}
+      onMouseDown={(e) => console.log('[ResultCard] Mouse down on:', result.title)}
+      onMouseUp={(e) => console.log('[ResultCard] Mouse up on:', result.title)}
+      style={{ position: 'relative', zIndex: 10, pointerEvents: 'auto' }}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between space-x-2">
@@ -179,7 +192,8 @@ export const ResultCard: React.FC<ResultCardProps> = ({
             size="sm"
             className="text-xs h-7"
             onClick={(e) => {
-              e.stopPropagation();
+              console.log('[ResultCard] View button clicked:', result.title);
+              e.stopPropagation(); // Prevent double-firing from card click
               onClick();
             }}
           >

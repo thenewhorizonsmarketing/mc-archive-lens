@@ -65,6 +65,34 @@ const Index = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Check for search selection from fullscreen search
+  useEffect(() => {
+    const searchSelection = sessionStorage.getItem('searchSelection');
+    
+    if (searchSelection) {
+      try {
+        const selection = JSON.parse(searchSelection);
+        sessionStorage.removeItem('searchSelection');
+        
+        const roomMap: Record<string, RoomType> = {
+          'alumni': 'alumni',
+          'publication': 'publications',
+          'photo': 'photos',
+          'faculty': 'faculty'
+        };
+        
+        const targetRoom = roomMap[selection.type];
+        if (targetRoom) {
+          setCurrentRoom(targetRoom);
+          setSelectedResultId(selection.title);
+          toast.success(`Opening ${selection.title}`);
+        }
+      } catch (error) {
+        console.error('[Index] Failed to parse search selection:', error);
+      }
+    }
+  }, []); // Run once on mount
+
   // Log analytics
   useEffect(() => {
     console.log(`[Analytics] Navigated to room: ${currentRoom}`);

@@ -1,0 +1,287 @@
+/* FilterPanel Component Styles */
+/* Touch-optimized filter controls for kiosk search interface */
+
+/* Filter Panel Container */
+.filter-panel {
+  position: relative;
+  width: 100%;
+  background: hsl(var(--background));
+  border-bottom: 1px solid hsl(var(--border));
+  
+  /* CSS containment to prevent layout shift - Requirements: 7.1, 7.4 */
+  contain: layout style paint;
+  
+  /* Reserve minimum space to prevent shifts */
+  min-height: 64px;
+  
+  /* Prevent content reflow */
+  flex-shrink: 0;
+}
+
+/* Filter Header */
+.filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.filter-header button {
+  /* Minimum touch target size: 44x44px */
+  min-height: 44px;
+  min-width: 44px;
+  
+  /* Touch-friendly padding */
+  padding: 0.5rem 1rem;
+  
+  /* Visual feedback - Use transform and opacity (Requirements: 7.5) */
+  transition: transform 100ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 100ms cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 100ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 100ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Performance hint */
+  will-change: transform;
+  
+  /* Prevent text selection on touch */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch feedback - pressed state (Requirements: 11.1, 11.2) */
+.filter-header button:active {
+  /* Use transform for GPU acceleration - Requirements: 7.5 */
+  transform: scale(0.98) translateZ(0);
+  transition-duration: 50ms;
+}
+
+/* Hover state for touch devices */
+@media (hover: hover) {
+  .filter-header button:hover {
+    background-color: hsl(var(--muted));
+  }
+}
+
+/* Active filter count badge */
+.filter-header button span[aria-label*="active filter"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 0.5rem;
+  border-radius: 9999px;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Clear All Button */
+.filter-header button[aria-label="Clear all filters"] {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.5rem 1rem;
+  background-color: hsl(var(--destructive) / 0.1);
+  color: hsl(var(--destructive));
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: background-color 100ms ease-in-out,
+              transform 50ms ease-in-out;
+}
+
+.filter-header button[aria-label="Clear all filters"]:active {
+  /* Use transform for GPU acceleration - Requirements: 7.5 */
+  transform: scale(0.98) translateZ(0);
+  background-color: hsl(var(--destructive) / 0.2);
+}
+
+@media (hover: hover) {
+  .filter-header button[aria-label="Clear all filters"]:hover {
+    background-color: hsl(var(--destructive) / 0.2);
+  }
+}
+
+/* Filter Content - Collapsible */
+.filter-content {
+  padding: 1rem;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  
+  /* Transform origin for animation */
+  transform-origin: top;
+  
+  /* Performance hint - Requirements: 7.5 */
+  will-change: transform, opacity;
+  
+  /* Smooth expand/collapse animation - 200ms duration (Requirements: 7.5) */
+  animation: slideInFromTop 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    /* Use transform for GPU acceleration - Requirements: 7.5 */
+    transform: translateY(-8px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+/* Filter Section */
+.filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.filter-section h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+/* Filter Button Grid */
+.filter-section > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem; /* 8px spacing between buttons */
+}
+
+/* Filter Toggle Buttons */
+.filter-section button {
+  /* Minimum touch target size: 44x44px */
+  min-height: 44px;
+  min-width: 44px;
+  
+  /* Touch-friendly padding */
+  padding: 0.5rem 1rem;
+  
+  /* Visual styling */
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  
+  /* Smooth transitions - Use transform and opacity (Requirements: 7.5) */
+  transition: transform 100ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 100ms cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 100ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 100ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Performance hint */
+  will-change: transform;
+  
+  /* Prevent text selection */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Ensure proper layering */
+  position: relative;
+  z-index: 1;
+}
+
+/* Inactive filter button */
+.filter-section button[aria-pressed="false"] {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  border: 2px solid transparent;
+}
+
+/* Active filter button */
+.filter-section button[aria-pressed="true"] {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 
+              0 2px 4px -2px rgb(0 0 0 / 0.1);
+  border: 2px solid hsl(var(--primary));
+}
+
+/* Touch feedback - pressed state (50ms duration) (Requirements: 11.1, 11.2) */
+.filter-section button:active {
+  /* Use transform for GPU acceleration - Requirements: 7.5 */
+  transform: scale(0.96) translateZ(0);
+  transition-duration: 50ms;
+}
+
+/* Hover state for devices with hover capability */
+@media (hover: hover) {
+  .filter-section button[aria-pressed="false"]:hover {
+    background-color: hsl(var(--muted) / 0.8);
+    border-color: hsl(var(--border));
+  }
+  
+  .filter-section button[aria-pressed="true"]:hover {
+    background-color: hsl(var(--primary) / 0.9);
+    box-shadow: 0 6px 8px -2px rgb(0 0 0 / 0.15), 
+                0 3px 5px -2px rgb(0 0 0 / 0.1);
+  }
+}
+
+/* Focus styles for accessibility */
+.filter-section button:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Ensure proper spacing between filter sections */
+.filter-section + .filter-section {
+  margin-top: 0.5rem;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 640px) {
+  .filter-header {
+    flex-wrap: wrap;
+  }
+  
+  .filter-section button {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .filter-section button[aria-pressed="true"] {
+    border: 3px solid hsl(var(--primary));
+  }
+  
+  .filter-section button[aria-pressed="false"] {
+    border: 2px solid hsl(var(--border));
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .filter-content {
+    animation: none;
+  }
+  
+  .filter-section button,
+  .filter-header button {
+    transition: none;
+  }
+  
+  .filter-section button:active,
+  .filter-header button:active {
+    transform: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .filter-panel {
+    display: none;
+  }
+}

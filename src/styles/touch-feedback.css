@@ -1,0 +1,401 @@
+/**
+ * Touch Feedback Styles
+ * 
+ * Ensures all interactive elements provide appropriate visual feedback:
+ * - Press states for all buttons (50ms immediate feedback)
+ * - Hover states for touch interactions
+ * - Appropriate feedback duration (150-200ms)
+ * - GPU-accelerated transitions (transform, opacity)
+ * 
+ * Requirements: 9.5, 11.1, 11.2, 11.3, 11.4, 11.5
+ */
+
+/* ============================================================================
+   Global Touch Feedback Base Styles
+   ============================================================================ */
+
+/* All interactive elements should have touch-friendly feedback */
+button,
+a[href],
+[role="button"],
+[tabindex]:not([tabindex="-1"]) {
+  /* Prevent text selection on touch */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  
+  /* Remove tap highlight */
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Touch action for better performance */
+  touch-action: manipulation;
+  
+  /* Cursor feedback */
+  cursor: pointer;
+  
+  /* GPU-accelerated transitions - Requirements: 7.5, 11.2 */
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Performance hint */
+  will-change: transform;
+}
+
+/* Hover state for devices with hover capability - Requirements: 9.5, 11.4 */
+@media (hover: hover) {
+  button:hover,
+  a[href]:hover,
+  [role="button"]:hover {
+    /* Subtle lift effect using transform */
+    transform: translateY(-1px) translateZ(0);
+    opacity: 0.95;
+  }
+}
+
+/* Active/Pressed state - 50ms immediate feedback - Requirements: 11.1, 11.2 */
+button:active,
+a[href]:active,
+[role="button"]:active,
+button.pressed,
+[role="button"].pressed {
+  /* Scale down for press feedback */
+  transform: scale(0.98) translateZ(0);
+  opacity: 0.9;
+  
+  /* Faster transition for immediate feedback */
+  transition-duration: 50ms;
+}
+
+/* Focus visible for keyboard navigation */
+button:focus-visible,
+a[href]:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   Specific Component Feedback Enhancements
+   ============================================================================ */
+
+/* Close Button - Requirements: 1.3, 9.1, 11.1 */
+.fullscreen-search-close {
+  /* Already has proper sizing (60x60px) */
+  min-width: 60px;
+  min-height: 60px;
+  
+  /* Enhanced feedback */
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (hover: hover) {
+  .fullscreen-search-close:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: scale(1.05) translateZ(0);
+  }
+}
+
+.fullscreen-search-close:active {
+  background-color: rgba(0, 0, 0, 0.1);
+  transform: scale(0.95) translateZ(0);
+  transition-duration: 50ms;
+}
+
+/* Filter Panel Buttons - Requirements: 4.1, 9.1, 11.2 */
+.filter-header button,
+.filter-section button {
+  /* Ensure minimum touch target */
+  min-height: 44px;
+  min-width: 44px;
+  
+  /* Enhanced visual feedback */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ripple effect for filter buttons */
+.filter-section button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 200ms ease-out, height 200ms ease-out;
+  pointer-events: none;
+}
+
+.filter-section button:active::after {
+  width: 100%;
+  height: 100%;
+  transition-duration: 0ms;
+}
+
+/* Active filter button - Requirements: 4.4, 11.4 */
+.filter-section button[aria-pressed="true"] {
+  /* Enhanced active state */
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 
+              0 2px 4px -2px rgb(0 0 0 / 0.1),
+              inset 0 2px 4px 0 rgb(0 0 0 / 0.06);
+}
+
+@media (hover: hover) {
+  .filter-section button[aria-pressed="true"]:hover {
+    box-shadow: 0 6px 8px -2px rgb(0 0 0 / 0.15), 
+                0 3px 5px -2px rgb(0 0 0 / 0.1),
+                inset 0 2px 4px 0 rgb(0 0 0 / 0.06);
+    transform: translateY(-2px) translateZ(0);
+  }
+}
+
+/* Result Cards - Requirements: 5.1, 5.2, 9.1, 11.1 */
+.result-card {
+  /* Ensure minimum touch target */
+  min-height: 80px;
+  
+  /* Enhanced feedback */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Hover state for result cards */
+@media (hover: hover) {
+  .result-card:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05),
+                0 2px 4px -2px rgb(0 0 0 / 0.05);
+    transform: translateY(-2px) translateZ(0);
+  }
+  
+  .result-card:hover .result-chevron {
+    transform: translateX(4px) translateZ(0);
+  }
+}
+
+/* Active state for result cards - 50ms feedback - Requirements: 11.1, 11.2 */
+.result-card:active,
+.result-card-pressed {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  transform: scale(0.99) translateZ(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition-duration: 50ms;
+}
+
+/* Navigation transition - 300ms - Requirements: 5.3, 5.5 */
+.result-card-navigating {
+  opacity: 0.6;
+  pointer-events: none;
+  transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Touch Keyboard Keys - Requirements: 2.3, 9.2, 11.1, 11.2 */
+.touch-keyboard__key {
+  /* Already has proper sizing (60x60px) */
+  min-width: 60px;
+  min-height: 60px;
+  
+  /* Enhanced feedback with ripple effect */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ripple effect for keyboard keys */
+.touch-keyboard__key::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transform: translate(-50%, -50%);
+  transition: width 150ms ease-out, height 150ms ease-out, opacity 150ms ease-out;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.touch-keyboard__key:active::before,
+.touch-keyboard__key--pressed::before {
+  width: 120%;
+  height: 120%;
+  opacity: 1;
+  transition-duration: 0ms;
+}
+
+/* Enhanced hover for keyboard keys */
+@media (hover: hover) {
+  .touch-keyboard__key:hover {
+    background-color: #E0A800;
+    transform: translateY(-2px) translateZ(0);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Enhanced active state - 50ms feedback - Requirements: 11.1, 11.2 */
+.touch-keyboard__key:active,
+.touch-keyboard__key--pressed {
+  background-color: #A07800;
+  transform: scale(0.95) translateZ(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) inset;
+  transition-duration: 50ms;
+}
+
+/* Special keys feedback */
+.touch-keyboard__key--backspace:active,
+.touch-keyboard__key--clear:active,
+.touch-keyboard__key--enter:active,
+.touch-keyboard__key--backspace.touch-keyboard__key--pressed,
+.touch-keyboard__key--clear.touch-keyboard__key--pressed,
+.touch-keyboard__key--enter.touch-keyboard__key--pressed {
+  background-color: #0A1B2E;
+  border-color: #A07800;
+  color: #A07800;
+  transform: scale(0.95) translateZ(0);
+  transition-duration: 50ms;
+}
+
+/* Clear Button in Search Input - Requirements: 12.1, 12.4 */
+.search-clear-button {
+  /* Ensure minimum touch target */
+  min-width: 44px;
+  min-height: 44px;
+  
+  /* Enhanced feedback */
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (hover: hover) {
+  .search-clear-button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: scale(1.1) translateZ(0);
+  }
+}
+
+.search-clear-button:active {
+  background-color: rgba(0, 0, 0, 0.1);
+  transform: scale(0.95) translateZ(0);
+  transition-duration: 50ms;
+}
+
+/* Error Retry Button - Requirements: 8.3, 11.1 */
+.error-retry-button {
+  /* Ensure minimum touch target */
+  min-width: 120px;
+  min-height: 44px;
+  
+  /* Enhanced feedback */
+  position: relative;
+  overflow: hidden;
+}
+
+@media (hover: hover) {
+  .error-retry-button:hover {
+    background: #1a3a5c;
+    transform: translateY(-2px) translateZ(0);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  }
+}
+
+.error-retry-button:active {
+  background: #0a1a2e;
+  transform: scale(0.98) translateZ(0);
+  transition-duration: 50ms;
+}
+
+/* ============================================================================
+   Loading States - Requirements: 3.4, 11.3
+   ============================================================================ */
+
+/* Loading spinner with smooth animation */
+.loading-spinner {
+  animation: spinner-rotation 800ms linear infinite;
+  will-change: transform;
+}
+
+@keyframes spinner-rotation {
+  0% {
+    transform: rotate(0deg) translateZ(0);
+  }
+  100% {
+    transform: rotate(360deg) translateZ(0);
+  }
+}
+
+/* Skeleton loading animation */
+.skeleton-thumbnail,
+.skeleton-badge,
+.skeleton-title,
+.skeleton-subtitle {
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ============================================================================
+   Accessibility & Reduced Motion
+   ============================================================================ */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  button:focus-visible,
+  a[href]:focus-visible,
+  [role="button"]:focus-visible {
+    outline-width: 3px;
+    outline-offset: 3px;
+  }
+  
+  .filter-section button[aria-pressed="true"] {
+    border-width: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  button:active,
+  a[href]:active,
+  [role="button"]:active {
+    transform: none;
+  }
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+
+@media print {
+  button,
+  a[href],
+  [role="button"] {
+    transition: none;
+    transform: none;
+  }
+}

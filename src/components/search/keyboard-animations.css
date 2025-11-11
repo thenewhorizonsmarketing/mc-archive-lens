@@ -1,0 +1,160 @@
+/**
+ * Keyboard Animations and Visual Feedback
+ * 
+ * Provides smooth animations and visual feedback for keyboard interactions.
+ * Requirements: 2.2, 10.5
+ */
+
+/* Key press animation */
+@keyframes keyPress {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Key press visual feedback */
+.keyboard-key {
+  transition: all 0.1s ease-in-out;
+  will-change: transform, background-color;
+}
+
+.keyboard-key:active {
+  animation: keyPress 0.15s ease-in-out;
+  background-color: hsl(var(--primary) / 0.1);
+}
+
+.keyboard-key:hover {
+  background-color: hsl(var(--accent));
+  transform: translateY(-1px);
+}
+
+.keyboard-key:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Keyboard show/hide animations */
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+}
+
+.keyboard-enter {
+  animation: slideUp 0.2s ease-out;
+}
+
+.keyboard-exit {
+  animation: slideDown 0.2s ease-in;
+}
+
+/* Smooth transitions for keyboard container */
+.keyboard-wrapper {
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+/* Special key highlighting */
+.keyboard-key-special {
+  background-color: hsl(var(--muted));
+}
+
+.keyboard-key-special:active {
+  background-color: hsl(var(--muted) / 0.8);
+}
+
+/* Active modifier keys (Shift, Caps Lock) */
+.keyboard-key-active {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.keyboard-key-active:hover {
+  background-color: hsl(var(--primary) / 0.9);
+}
+
+/* Ripple effect for touch feedback */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.keyboard-key-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background-color: currentColor;
+  width: 20px;
+  height: 20px;
+  animation: ripple 0.6s ease-out;
+  pointer-events: none;
+}
+
+/* Performance optimizations */
+.keyboard-key,
+.keyboard-wrapper {
+  /* Use GPU acceleration for smooth animations */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .keyboard-key,
+  .keyboard-wrapper,
+  .keyboard-enter,
+  .keyboard-exit {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .keyboard-key {
+    border: 2px solid currentColor;
+  }
+  
+  .keyboard-key:focus-visible {
+    outline-width: 3px;
+  }
+}
+
+/* Touch-specific styles */
+@media (hover: none) and (pointer: coarse) {
+  .keyboard-key:hover {
+    transform: none;
+  }
+  
+  .keyboard-key:active {
+    transform: scale(0.95);
+  }
+}

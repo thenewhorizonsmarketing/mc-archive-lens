@@ -1,0 +1,310 @@
+.room-card {
+  position: relative;
+  width: 259px;
+  height: 288px;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  contain: layout style paint;
+  will-change: transform;
+  transform: translateZ(0); /* Force GPU layer */
+}
+
+.card-glass {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  backdrop-filter: blur(12px) saturate(190%);
+  -webkit-backdrop-filter: blur(12px) saturate(190%);
+  border-radius: 19px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06),
+              0 8px 24px rgba(0, 0, 0, 0.15),
+              0 16px 48px rgba(0, 0, 0, 0.1),
+              0 1px 2px rgba(0, 0, 0, 0.25),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(10px);
+  will-change: transform;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover state */
+.room-card:hover .card-glass {
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.25) 0%,
+    rgba(255, 255, 255, 0.18) 50%,
+    rgba(255, 255, 255, 0.12) 100%
+  );
+  border-color: var(--mc-gold, #C99700);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08),
+              0 12px 32px rgba(0, 0, 0, 0.18),
+              0 24px 64px rgba(0, 0, 0, 0.12),
+              0 2px 4px rgba(0, 0, 0, 0.3),
+              0 0 24px rgba(201, 151, 0, 0.4),
+              0 0 48px rgba(201, 151, 0, 0.25),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Focus state for keyboard navigation */
+.room-card:focus {
+  outline: none;
+}
+
+/* Visible focus indicator for keyboard users */
+.room-card:focus-visible {
+  outline: 3px solid var(--mc-gold, #C99700);
+  outline-offset: 4px;
+  border-radius: 24px;
+}
+
+.room-card:focus-visible .card-glass {
+  border-color: var(--mc-gold, #C99700);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08),
+              0 12px 32px rgba(0, 0, 0, 0.18),
+              0 24px 64px rgba(0, 0, 0, 0.12),
+              0 2px 4px rgba(0, 0, 0, 0.3),
+              0 0 24px rgba(201, 151, 0, 0.5),
+              0 0 48px rgba(201, 151, 0, 0.35),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Shine effect overlay */
+.card-shine {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.05) 40%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.05) 60%,
+    transparent 75%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.room-card:hover .card-shine {
+  transform: translateX(100%);
+  transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.card-icon {
+  width: 58px;
+  height: 58px;
+  margin-bottom: 14px;
+  color: #C99700;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3))
+          drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4))
+          drop-shadow(0 0 8px rgba(201, 151, 0, 0.2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.card-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.room-card:hover .card-icon {
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35))
+          drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45))
+          drop-shadow(0 0 12px rgba(201, 151, 0, 0.4));
+}
+
+.card-title {
+  font-family: var(--font-primary-bold, 'Source Sans 3', sans-serif);
+  font-size: 1.58rem;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  margin: 0 0 10px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1.2;
+}
+
+.card-description {
+  font-family: var(--font-primary, 'Source Sans 3', sans-serif);
+  font-size: 0.94rem;
+  color: #69B3E7;
+  text-align: center;
+  line-height: 1.4;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive adjustments */
+/* Tablet breakpoint (768px - 1024px) */
+@media (max-width: 1024px) {
+  .room-card {
+    width: 160px;
+    height: 180px;
+  }
+
+  .card-glass {
+    padding: 14px;
+    backdrop-filter: blur(8px) saturate(160%); /* Slightly reduce blur for performance */
+    transform: translateZ(8px); /* Reduce 3D depth */
+  }
+
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 8px;
+  }
+
+  .card-title {
+    font-size: 1rem;
+  }
+
+  .card-description {
+    font-size: 0.6rem;
+  }
+}
+
+/* Mobile breakpoint (< 768px) */
+@media (max-width: 768px) {
+  .room-card {
+    width: 100%;
+    max-width: 400px;
+    height: 240px;
+    /* Ensure touch-friendly sizing */
+    min-height: 200px;
+  }
+
+  .card-glass {
+    padding: 24px 20px;
+    backdrop-filter: blur(6px) saturate(150%); /* Further reduce for mobile performance */
+    transform: translateZ(5px); /* Minimal 3D depth on mobile */
+    border-radius: 16px; /* Slightly smaller radius */
+  }
+
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+    margin-bottom: 8px;
+  }
+
+  .card-description {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+  
+  /* Adjust hover effects for touch devices */
+  .room-card:hover .card-glass {
+    /* Reduce shadow intensity on mobile */
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14),
+                0 4px 16px rgba(0, 0, 0, 0.12),
+                0 1px 2px rgba(0, 0, 0, 0.2),
+                0 0 16px rgba(201, 151, 0, 0.25),
+                0 0 32px rgba(201, 151, 0, 0.25);
+  }
+}
+
+/* Small mobile devices (< 480px) */
+@media (max-width: 480px) {
+  .room-card {
+    max-width: 100%;
+    height: 220px;
+  }
+
+  .card-glass {
+    padding: 20px 16px;
+    backdrop-filter: blur(5px) saturate(140%);
+    transform: translateZ(3px);
+  }
+
+  .card-icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 12px;
+  }
+
+  .card-title {
+    font-size: 1.125rem;
+  }
+
+  .card-description {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch-specific styles for devices without hover capability */
+  .room-card {
+    /* Ensure minimum touch target size (44x44px recommended) */
+    min-width: 200px;
+    min-height: 200px;
+  }
+  
+  /* Active state for touch feedback */
+  .room-card:active .card-glass {
+    background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.25),
+      rgba(255, 255, 255, 0.15)
+    );
+    border-color: var(--mc-gold, #C99700);
+    transform: scale(0.98);
+  }
+  
+  /* Disable hover shine effect on touch devices */
+  .room-card:hover .card-shine {
+    transform: translateX(-100%);
+  }
+}
+
+/* Landscape orientation adjustments for tablets */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .room-card {
+    width: 170px;
+    height: 190px;
+  }
+}
+
+/* Portrait orientation adjustments for tablets */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .room-card {
+    width: 150px;
+    height: 170px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .room-card,
+  .card-shine,
+  .card-glass,
+  .card-icon,
+  .card-title,
+  .card-description {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

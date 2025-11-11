@@ -1,6 +1,6 @@
 // Filter Controls Component
-import React, { useState, useCallback } from 'react';
-import { X, Calendar, BookOpen, Building, Camera, Tag, RotateCcw, User } from 'lucide-react';
+import React, { useState, useCallback, useRef } from 'react';
+import { Calendar, BookOpen, Building, Camera, Tag, RotateCcw, User, Keyboard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,8 +10,9 @@ import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { SearchFilters, YearRange } from '@/lib/database/types';
+import { YearRange } from '@/lib/database/types';
 import { FilterProcessor, FilterOptions } from '@/lib/database/filter-processor';
+import { OnScreenKeyboard } from './OnScreenKeyboard';
 
 export interface FilterControlsProps {
   filters: FilterOptions;
@@ -26,18 +27,26 @@ export interface FilterControlsProps {
     tags: string[];
   };
   className?: string;
+  showKeyboard?: boolean;
+  keyboardPosition?: 'below' | 'floating';
 }
 
 export const FilterControls: React.FC<FilterControlsProps> = ({
   filters,
   onChange,
   availableOptions,
-  className = ""
+  className = "",
+  showKeyboard = false,
+  keyboardPosition = 'below'
 }) => {
   const [yearRange, setYearRange] = useState<[number, number]>([
     filters.yearRange?.start || 1950,
     filters.yearRange?.end || new Date().getFullYear()
   ]);
+  
+  // Keyboard state
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Handle year range change
   const handleYearRangeChange = useCallback((values: number[]) => {
@@ -126,6 +135,43 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
   // Get filter summary
   const filterSummary = FilterProcessor.createFilterSummary(filters);
 
+  // Keyboard handlers
+  const handleKeyboardKey = useCallback((key: string) => {
+    const currentValue = filters.name || '';
+    
+    if (key === 'Backspace') {
+      const newValue = currentValue.slice(0, -1);
+      onChange({
+        ...filters,
+        name: newValue || undefined
+      });
+    } else if (key === 'Enter') {
+      // Enter key - just close keyboard
+      setKeyboardVisible(false);
+      nameInputRef.current?.blur();
+    } else if (key === 'Tab' || key === 'Ctrl' || key === 'Alt') {
+      // Ignore modifier keys
+      return;
+    } else {
+      // Regular character
+      const newValue = currentValue + key;
+      onChange({
+        ...filters,
+        name: newValue
+      });
+    }
+  }, [filters, onChange]);
+
+  const handleNameInputFocus = useCallback(() => {
+    if (showKeyboard) {
+      setKeyboardVisible(true);
+    }
+  }, [showKeyboard]);
+
+  const handleHideKeyboard = useCallback(() => {
+    setKeyboardVisible(false);
+  }, []);
+
   return (
     <Card className={`filter-controls ${className}`} role="region" aria-label="Search filters">
       <CardHeader className="pb-3">
@@ -207,8 +253,15 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
               <Label className="text-sm font-medium mb-3 block flex items-center space-x-2">
                 <User className="h-4 w-4" />
                 <span>Name Search</span>
+                {showKeyboard && keyboardVisible && (
+                  <Badge variant="secondary" className="text-xs ml-auto">
+                    <Keyboard className="h-3 w-3 mr-1" />
+                    Keyboard Active
+                  </Badge>
+                )}
               </Label>
               <Input
+                ref={nameInputRef}
                 type="text"
                 placeholder="Search by name..."
                 value={filters.name || ''}
@@ -216,11 +269,31 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
                   ...filters,
                   name: e.target.value || undefined
                 })}
+                onFocus={handleNameInputFocus}
                 className="w-full"
+                aria-label="Filter by name"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Filter by first name, last name, or full name
               </p>
+              
+              {/* On-Screen Keyboard */}
+              {showKeyboard && keyboardVisible && (
+                <div className={`mt-4 ${keyboardPosition === 'floating' ? 'fixed bottom-4 left-4 right-4 z-50' : ''}`}>
+                  <OnScreenKeyboard
+                    onKeyPress={handleKeyboardKey}
+                    className="shadow-lg"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleHideKeyboard}
+                    className="mt-2 w-full"
+                  >
+                    Hide Keyboard
+                  </Button>
+                </div>
+              )}
             </div>
             <Separator />
           </>

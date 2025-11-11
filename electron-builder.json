@@ -1,0 +1,93 @@
+{
+  "appId": "com.mcmuseum.3d-clue-board-kiosk",
+  "productName": "3D Clue Board Kiosk",
+  "copyright": "Copyright © 2025 MC Museum & Archives",
+  "directories": {
+    "output": "release",
+    "buildResources": "build"
+  },
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*",
+    "package.json",
+    "!node_modules/**/*",
+    "!src/**/*",
+    "!electron/**/*",
+    "!**/*.map",
+    "!**/*.ts",
+    "!**/*.tsx"
+  ],
+  "extraResources": [
+    {
+      "from": "public/assets",
+      "to": "assets",
+      "filter": ["**/*"]
+    },
+    {
+      "from": "public/config",
+      "to": "config",
+      "filter": ["**/*"]
+    },
+    {
+      "from": "public/images",
+      "to": "images",
+      "filter": ["**/*"]
+    },
+    {
+      "from": "public/photos",
+      "to": "photos",
+      "filter": ["**/*"]
+    },
+    {
+      "from": "public/pdfs",
+      "to": "pdfs",
+      "filter": ["**/*"]
+    },
+    {
+      "from": "scripts/windows-startup.bat",
+      "to": "windows-startup.bat"
+    }
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      },
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "build/icon.ico",
+    "requestedExecutionLevel": "requireAdministrator",
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "allowElevation": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "3D Clue Board Kiosk",
+    "installerIcon": "build/icon.ico",
+    "uninstallerIcon": "build/icon.ico",
+    "license": "LICENSE.txt",
+    "perMachine": true,
+    "runAfterFinish": false,
+    "include": "build/installer.nsh",
+    "artifactName": "${productName}-Setup-${version}.${ext}"
+  },
+  "portable": {
+    "artifactName": "${productName}-Portable-${version}.${ext}"
+  },
+  "compression": "maximum",
+  "asar": true,
+  "asarUnpack": [
+    "**/*.node",
+    "public/assets/**/*",
+    "public/config/**/*"
+  ],
+  "publish": null,
+  "buildVersion": "1.0.0"
+}

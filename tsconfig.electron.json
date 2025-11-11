@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "outDir": "dist-electron",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["electron/**/*"],
+  "exclude": ["node_modules", "dist", "dist-electron"]
+}

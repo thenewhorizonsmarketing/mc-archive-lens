@@ -1,0 +1,453 @@
+/**
+ * Layout Stability CSS
+ * Prevents Cumulative Layout Shift (CLS) across all screen sizes
+ */
+
+/* ===== Prevent Layout Shifts ===== */
+
+/* Fixed container heights to prevent shifts */
+.clue-board-layout {
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Global search wrapper with fixed height */
+.global-search-wrapper {
+  width: 100%;
+  padding: 2rem 1rem;
+  flex-shrink: 0;
+  /* Reserve space for expanded state to prevent shifts */
+  min-height: 180px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/* Prevent search expansion from causing layout shift */
+.global-search-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: var(--z-board-content, 20);
+  /* Use absolute positioning for expansion to prevent shifts */
+}
+
+.global-search-glass {
+  width: 100%;
+  /* Prevent content reflow */
+  contain: layout style paint;
+}
+
+/* Collapsed state - fixed height */
+.global-search-collapsed {
+  min-height: 120px;
+  max-height: 120px;
+}
+
+/* Expanded state - use absolute positioning overlay */
+.global-search-expanded {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 400px;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 100;
+  /* Smooth scrolling */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Central branding - fixed dimensions */
+.clue-board-central-branding {
+  flex-shrink: 0;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  max-height: 300px;
+  margin: 2rem auto;
+}
+
+/* Room cards grid - fixed layout */
+.room-cards-grid {
+  flex: 1;
+  display: grid;
+  gap: 2rem;
+  padding: 2rem 1rem;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  /* Prevent grid from causing shifts */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-content: start;
+}
+
+/* Room cards - fixed aspect ratio */
+.room-card {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  height: auto;
+  /* Prevent content reflow */
+  contain: layout style paint;
+}
+
+/* Footer - fixed height */
+.clue-board-footer {
+  flex-shrink: 0;
+  padding: 2rem 1rem;
+  text-align: center;
+  min-height: 80px;
+}
+
+/* ===== Responsive Breakpoints ===== */
+
+/* Large screens (1400px+) */
+@media (min-width: 1400px) {
+  .global-search-wrapper {
+    padding: 3rem 2rem;
+    min-height: 200px;
+  }
+  
+  .room-cards-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2.5rem;
+    padding: 3rem 2rem;
+  }
+}
+
+/* Desktop (1024px - 1399px) */
+@media (min-width: 1024px) and (max-width: 1399px) {
+  .global-search-wrapper {
+    padding: 2.5rem 2rem;
+    min-height: 190px;
+  }
+  
+  .room-cards-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    padding: 2.5rem 2rem;
+  }
+}
+
+/* Tablet landscape (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .global-search-wrapper {
+    padding: 2rem 1.5rem;
+    min-height: 170px;
+  }
+  
+  .global-search-collapsed {
+    min-height: 110px;
+    max-height: 110px;
+  }
+  
+  .room-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    padding: 2rem 1.5rem;
+  }
+  
+  .clue-board-central-branding {
+    max-height: 250px;
+  }
+}
+
+/* Tablet portrait (600px - 767px) */
+@media (min-width: 600px) and (max-width: 767px) {
+  .global-search-wrapper {
+    padding: 1.5rem 1rem;
+    min-height: 160px;
+  }
+  
+  .global-search-collapsed {
+    min-height: 100px;
+    max-height: 100px;
+  }
+  
+  .room-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    padding: 1.5rem 1rem;
+  }
+  
+  .clue-board-central-branding {
+    max-height: 220px;
+  }
+}
+
+/* Mobile landscape (480px - 599px) */
+@media (min-width: 480px) and (max-width: 599px) {
+  .global-search-wrapper {
+    padding: 1.5rem 1rem;
+    min-height: 150px;
+  }
+  
+  .global-search-collapsed {
+    min-height: 90px;
+    max-height: 90px;
+  }
+  
+  .room-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: 1.5rem 1rem;
+  }
+  
+  .clue-board-central-branding {
+    max-height: 200px;
+  }
+  
+  .clue-board-footer {
+    min-height: 70px;
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* Mobile portrait (< 480px) */
+@media (max-width: 479px) {
+  .global-search-wrapper {
+    padding: 1rem 0.75rem;
+    min-height: 140px;
+  }
+  
+  .global-search-collapsed {
+    min-height: 85px;
+    max-height: 85px;
+  }
+  
+  .room-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem 0.75rem;
+  }
+  
+  .clue-board-central-branding {
+    max-height: 180px;
+    margin: 1rem auto;
+  }
+  
+  .clue-board-footer {
+    min-height: 60px;
+    padding: 1rem 0.75rem;
+  }
+}
+
+/* Extra small mobile (< 360px) */
+@media (max-width: 359px) {
+  .global-search-wrapper {
+    padding: 0.75rem 0.5rem;
+    min-height: 130px;
+  }
+  
+  .global-search-collapsed {
+    min-height: 80px;
+    max-height: 80px;
+  }
+  
+  .room-cards-grid {
+    gap: 0.75rem;
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .clue-board-central-branding {
+    max-height: 160px;
+  }
+}
+
+/* ===== Touch Device Optimizations ===== */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch targets */
+  .global-search-collapsed {
+    min-height: 140px;
+    max-height: 140px;
+  }
+  
+  .room-card {
+    /* Ensure touch targets are at least 44x44px */
+    min-height: 44px;
+  }
+  
+  /* Prevent iOS zoom on input focus */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ===== Prevent Scrollbar Layout Shift ===== */
+html {
+  /* Always show scrollbar to prevent layout shift */
+  overflow-y: scroll;
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+}
+
+/* Prevent horizontal overflow */
+body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+/* ===== Image Loading - Prevent Shifts ===== */
+img {
+  /* Reserve space before image loads */
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Lazy loaded images */
+img[loading="lazy"] {
+  /* Prevent layout shift during lazy load */
+  min-height: 1px;
+}
+
+/* ===== Font Loading - Prevent FOIT/FOUT ===== */
+/* Note: font-display: swap should be added to actual @font-face declarations */
+/* This ensures fallback fonts are used immediately while custom fonts load */
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  html {
+    scroll-behavior: auto !important;
+  }
+  
+  .global-search-expanded {
+    transition: none !important;
+  }
+}
+
+/* ===== GPU Acceleration ===== */
+.global-search-glass,
+.room-card,
+.clue-board-central-branding {
+  /* Enable GPU acceleration */
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  /* Prevent subpixel rendering issues */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== Prevent Content Jumping ===== */
+* {
+  /* Prevent margin collapse */
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+/* Consistent box-sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ===== Safe Area Insets (for notched devices) ===== */
+@supports (padding: max(0px)) {
+  .clue-board-layout {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+}
+
+
+/* ===== Search Results Stability ===== */
+
+/* Prevent search results from causing layout shift */
+#search-results {
+  /* Reserve minimum space */
+  min-height: 400px;
+  /* Prevent content reflow */
+  contain: layout style;
+}
+
+/* Results header - fixed height */
+#search-results .flex.items-center.justify-between {
+  min-height: 32px;
+  /* Prevent reflow */
+  contain: layout;
+}
+
+/* Prevent "Found X results" text from causing shift */
+#search-results p[class*="text-muted-foreground"] {
+  /* Fixed line height */
+  line-height: 1.5;
+  min-height: 1.5em;
+}
+
+/* Search results container */
+.search-results-container {
+  /* Smooth transitions without layout shift */
+  transition: opacity 200ms ease-in-out;
+  will-change: opacity;
+  /* Prevent layout recalculation */
+  contain: layout style paint;
+}
+
+/* Loading state - maintain space */
+#search-results [class*="text-center"][class*="py-"] {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Prevent empty state from causing shift */
+#search-results > div {
+  /* Maintain consistent spacing */
+  min-height: inherit;
+}
+
+
+/* ===== Prevent Top Bar Appearance ===== */
+
+/* Ensure our app takes full viewport */
+body {
+  position: relative;
+  z-index: 1;
+}
+
+/* Prevent any elements from appearing above our app */
+#root {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Hide any elements that try to appear at the very top */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* Force hide any white bars */
+*[style*="background-color: rgb(255, 255, 255)"],
+*[style*="background: rgb(255, 255, 255)"] {
+  /* Only if positioned at top */
+  &[style*="position: absolute"][style*="top: 0"] {
+    display: none !important;
+  }
+}
