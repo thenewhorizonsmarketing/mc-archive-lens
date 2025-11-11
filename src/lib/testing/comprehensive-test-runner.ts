@@ -3,7 +3,6 @@ import { DatabaseManager } from '../database/manager';
 import { EnhancedSearchManager } from '../database/enhanced-search-manager';
 import { SecurityManager } from '../security/security-manager';
 import { AccessibilityManager } from '../accessibility/accessibility-manager';
-import { AnalyticsEngine } from '../analytics/analytics-engine';
 import { Logger } from '../logging/logger';
 
 export interface TestResult {
@@ -50,7 +49,6 @@ export class ComprehensiveTestRunner {
   private searchManager: EnhancedSearchManager;
   private securityManager: SecurityManager;
   private accessibilityManager: AccessibilityManager;
-  private analyticsEngine: AnalyticsEngine;
   private logger: Logger;
 
   constructor() {
@@ -59,7 +57,6 @@ export class ComprehensiveTestRunner {
     this.searchManager = new EnhancedSearchManager(this.dbManager);
     this.securityManager = new SecurityManager();
     this.accessibilityManager = new AccessibilityManager();
-    this.analyticsEngine = new AnalyticsEngine();
   }
 
   /**
@@ -502,14 +499,13 @@ export class ComprehensiveTestRunner {
         // 2. Perform search
         const results = await this.searchManager.searchAll(validation.sanitized || query, {}, { limit: 10 });
         
-        // 3. Track analytics
-        const searchEventId = this.analyticsEngine.trackSearch(query, {}, results, 50);
-        
-        // 4. Simulate result click
-        if (results.length > 0) {
-          this.analyticsEngine.trackResultClick(searchEventId, results[0], 0, new Date());
-        }
-        
+        // 3. Record monitoring details
+        this.logger.info('Search executed during integration tests', 'testing', {
+          query,
+          resultCount: results.length,
+          responseTime: 50
+        });
+
         // Workflow should complete without errors
       }
     ));
@@ -546,26 +542,30 @@ export class ComprehensiveTestRunner {
       }
     ));
 
-    // Security and analytics integration test
+    // Security and monitoring integration test
     tests.push(await this.runTest(
-      'Security-Analytics Integration',
+      'Security Monitoring Integration',
       'integration',
       async () => {
-        // Test malicious input handling with analytics
+        // Test malicious input handling with monitoring hooks
         const maliciousQuery = '<script>alert("test")</script>';
-        
+
         const validation = this.securityManager.validateSearchQuery(maliciousQuery, 'test');
-        
+
         // Should be blocked by security
         if (validation.isValid) {
           throw new Error('Malicious query not blocked');
         }
-        
+
         // Security violation should be logged
         const securityStats = this.securityManager.getSecurityStats();
         if (securityStats.totalViolations === 0) {
           throw new Error('Security violation not logged');
         }
+
+        this.logger.warn('Detected malicious query during integration tests', 'testing', {
+          blockedQuery: maliciousQuery
+        });
       }
     ));
 
@@ -764,7 +764,6 @@ export class ComprehensiveTestRunner {
    */
   destroy(): void {
     this.accessibilityManager.destroy();
-    this.analyticsEngine.destroy();
     this.securityManager.destroy();
     this.logger.destroy();
   }

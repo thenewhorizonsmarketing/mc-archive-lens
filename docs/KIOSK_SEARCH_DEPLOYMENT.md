@@ -501,22 +501,6 @@ if (import.meta.env.PROD) {
 }
 ```
 
-### 4. Analytics Verification
-
-```typescript
-// Verify analytics are working
-import { trackEvent } from '@/lib/analytics';
-
-// Test event tracking
-trackEvent('search_performed', {
-  query: 'test',
-  results: 10
-});
-
-// Check analytics dashboard
-// Verify events are being received
-```
-
 ## Rollback Procedure
 
 If issues are detected after deployment:
@@ -726,7 +710,6 @@ function sanitizeQuery(query: string): string {
 
 ### Monitoring
 - Error tracking: [Sentry Dashboard]
-- Analytics: [Analytics Dashboard]
 - Performance: [Lighthouse CI]
 
 ### Contact

@@ -7,7 +7,6 @@ Comprehensive search history tracking and analytics system with MC Law blue styl
 The history and analytics system provides:
 - **Persistent History Tracking**: Stores all searches in IndexedDB
 - **Timeline View**: Visual timeline of search history
-- **Analytics Dashboard**: Comprehensive statistics and insights
 - **Auto Cleanup**: Removes entries older than 30 days
 - **Re-execution**: Quickly re-run previous searches
 
