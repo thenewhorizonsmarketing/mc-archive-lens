@@ -153,6 +153,18 @@ export const samplePublications: PublicationRecord[] = [
     page_count: 16,
     year: 2021,
     decade: "2020s"
+  },
+  {
+    id: "composite_1994_1995",
+    title: "Class Composite 1994-1995",
+    pub_name: "Directory",
+    issue_date: "1995-05-01",
+    volume_issue: "1994-1995",
+    flipbook_path: "/flipbooks/composite-1994-1995/index.html",
+    description: "Class composite for the 1994-1995 academic year",
+    tags: ["composite", "directory", "1994", "1995"],
+    year: 1995,
+    decade: "1990s"
   }
 ];
 

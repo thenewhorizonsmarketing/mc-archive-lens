@@ -183,6 +183,21 @@ export class BrowserDatabaseManager extends DatabaseManager {
           conference: 'International Conference on Renewable Energy',
           tags: ['sustainable energy', 'renewable energy', 'infrastructure']
         }
+      },
+      {
+        id: 'composite_1994_1995',
+        type: 'publication',
+        title: 'Class Composite 1994-1995',
+        content: 'Class composite for the 1994-1995 academic year. Interactive flipbook featuring student portraits and information.',
+        metadata: {
+          pub_name: 'Directory',
+          year: 1995,
+          decade: '1990s',
+          publicationType: 'Directory',
+          volume_issue: '1994-1995',
+          flipbook_path: '/flipbooks/composite-1994-1995/index.html',
+          tags: ['composite', 'directory', '1994', '1995', 'students', 'yearbook']
+        }
       }
     );
 
