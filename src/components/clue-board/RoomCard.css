@@ -138,7 +138,7 @@
 .card-description {
   font-family: var(--font-primary, 'Source Sans 3', sans-serif);
   font-size: 0.94rem;
-  color: #69B3E7;
+  color: white;
   text-align: center;
   line-height: 1.4;
   margin: 0;
