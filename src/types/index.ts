@@ -25,7 +25,8 @@ export interface PublicationRecord {
   pub_name: string;
   issue_date: string;
   volume_issue?: string;
-  pdf_path: string;
+  pdf_path?: string;
+  flipbook_path?: string;
   thumb_path: string;
   description?: string;
   tags: string[];

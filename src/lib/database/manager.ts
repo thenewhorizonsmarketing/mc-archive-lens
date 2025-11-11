@@ -67,8 +67,11 @@ export class DatabaseManager {
         this.db.run(triggerSQL);
       }
 
+      // Run migrations for existing databases
+      await this.runMigrations();
+
       // Set database metadata
-      this.setMetadata('db_version', '1.0.0');
+      this.setMetadata('db_version', '1.1.0');
       this.setMetadata('created_at', new Date().toISOString());
       this.setMetadata('fts_enabled', 'true');
 
@@ -77,6 +80,64 @@ export class DatabaseManager {
     } catch (error) {
       throw new DatabaseError(`Failed to initialize database: ${error}`);
     }
+  }
+
+  /**
+   * Run database migrations
+   * This method is idempotent and safe to run multiple times
+   */
+  async runMigrations(): Promise<void> {
+    if (!this.db) {
+      throw new DatabaseError('Database not initialized');
+    }
+
+    try {
+      // Check current schema version
+      const currentVersion = this.getMetadata('schema_version') || '1.0.0';
+      
+      // Migration 1: Add flipbook_path column (v1.1.0)
+      if (this.compareVersions(currentVersion, '1.1.0') < 0) {
+        try {
+          // Check if column already exists by querying table info
+          const tableInfo = this.executeQuery("PRAGMA table_info(publications)");
+          const hasFlipbookPath = tableInfo.some((col: any) => col.name === 'flipbook_path');
+          
+          if (!hasFlipbookPath) {
+            this.db.run('ALTER TABLE publications ADD COLUMN flipbook_path TEXT');
+            console.log('Migration: Added flipbook_path column to publications table');
+          } else {
+            console.log('Migration: flipbook_path column already exists, skipping');
+          }
+          
+          this.setMetadata('schema_version', '1.1.0');
+        } catch (error) {
+          console.warn('Migration warning (non-critical):', error);
+        }
+      }
+
+      console.log('Database migrations completed successfully');
+    } catch (error) {
+      throw new DatabaseError(`Failed to run migrations: ${error}`);
+    }
+  }
+
+  /**
+   * Compare semantic version strings
+   * Returns: -1 if v1 < v2, 0 if v1 === v2, 1 if v1 > v2
+   */
+  private compareVersions(v1: string, v2: string): number {
+    const parts1 = v1.split('.').map(Number);
+    const parts2 = v2.split('.').map(Number);
+    
+    for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+      const part1 = parts1[i] || 0;
+      const part2 = parts2[i] || 0;
+      
+      if (part1 < part2) return -1;
+      if (part1 > part2) return 1;
+    }
+    
+    return 0;
   }
 
   /**

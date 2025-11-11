@@ -8,6 +8,7 @@ export * from './backup-manager';
 export * from './index-manager';
 export * from './search-manager';
 export * from './query-builder';
+export * from './migrations';
 
 // Re-export commonly used items for convenience
 export { 

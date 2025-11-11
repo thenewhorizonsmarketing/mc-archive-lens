@@ -1,6 +1,7 @@
 // Modal component for displaying full record details
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SearchResult } from '@/lib/database/types';
+import { FlipbookViewer } from '@/components/FlipbookViewer';
 import './RecordDetail.css';
 
 export interface RecordDetailProps {
@@ -114,6 +115,19 @@ export const RecordDetail: React.FC<RecordDetailProps> = ({
 
   const renderPublicationContent = () => {
     const data = record.data as any;
+    const [showFlipbook, setShowFlipbook] = useState(false);
+    
+    // Import validation utility
+    const { validateFlipbookPath } = require('@/lib/flipbook/validation');
+    
+    // Validate flipbook path and get normalized path
+    const flipbookValidation = validateFlipbookPath(data.flipbook_path);
+    const hasFlipbook = flipbookValidation.isValid;
+    const hasPDF = !!data.pdf_path;
+    
+    // Use normalized flipbook URL from validation
+    const flipbookUrl = flipbookValidation.normalizedPath || '';
+    
     return (
       <>
         <div className="record-detail__image-container">
@@ -156,19 +170,59 @@ export const RecordDetail: React.FC<RecordDetailProps> = ({
               <span className="record-detail__value">{data.description}</span>
             </div>
           )}
-          {data.pdf_path && (
+          
+          {/* Conditional rendering for viewing options */}
+          {(hasFlipbook || hasPDF) && (
             <div className="record-detail__actions">
-              <a
-                href={data.pdf_path}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="record-detail__button"
-              >
-                View PDF
-              </a>
+              {hasPDF && (
+                <a
+                  href={data.pdf_path}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="record-detail__button"
+                >
+                  View PDF
+                </a>
+              )}
+              {hasFlipbook && (
+                <button
+                  onClick={() => {
+                    // Validate path before opening
+                    if (flipbookValidation.isValid) {
+                      setShowFlipbook(true);
+                    } else {
+                      console.error('Invalid flipbook path:', flipbookValidation.error);
+                      alert(`Cannot open flipbook: ${flipbookValidation.error}`);
+                    }
+                  }}
+                  className="record-detail__button"
+                  type="button"
+                >
+                  View Flipbook
+                </button>
+              )}
+            </div>
+          )}
+          
+          {/* Show message when neither viewing option is available */}
+          {!hasFlipbook && !hasPDF && (
+            <div className="record-detail__actions">
+              <p className="record-detail__no-viewer">
+                No viewer available for this publication
+              </p>
             </div>
           )}
         </div>
+        
+        {/* Render FlipbookViewer when opened */}
+        {showFlipbook && hasFlipbook && (
+          <FlipbookViewer
+            flipbookUrl={flipbookUrl}
+            title={data.title}
+            onClose={() => setShowFlipbook(false)}
+            pdfPath={hasPDF ? data.pdf_path : undefined}
+          />
+        )}
       </>
     );
   };

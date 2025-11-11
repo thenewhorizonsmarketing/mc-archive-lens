@@ -1,0 +1,288 @@
+/**
+ * FlipbookViewer Component Styles
+ * 
+ * Provides fullscreen layout and responsive styling for flipbook viewer
+ * Requirements: 1.1, 1.2, 3.4
+ */
+
+/* ============================================================================
+   Fullscreen Layout
+   ============================================================================ */
+
+.flipbook-viewer {
+  /* Full viewport dimensions */
+  width: 100%;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  
+  /* Flexbox layout */
+  display: flex;
+  flex-direction: column;
+  
+  /* Prevent scrolling */
+  overflow: hidden;
+  
+  /* CSS containment for performance */
+  contain: layout style;
+}
+
+/* ============================================================================
+   Header Styles
+   ============================================================================ */
+
+.flipbook-viewer__header {
+  flex-shrink: 0;
+  min-height: 80px;
+  
+  /* Ensure header stays on top */
+  z-index: 10;
+  
+  /* Shadow for depth */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.flipbook-viewer__header h2 {
+  /* Ensure title doesn't break layout */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================================================
+   Content Area
+   ============================================================================ */
+
+.flipbook-viewer__content {
+  /* Take remaining space */
+  flex: 1;
+  
+  /* Prevent overflow */
+  overflow: hidden;
+  
+  /* Relative positioning for absolute children */
+  position: relative;
+  
+  /* Minimum height to prevent collapse */
+  min-height: 0;
+}
+
+/* ============================================================================
+   Iframe Styles
+   ============================================================================ */
+
+.flipbook-viewer__iframe {
+  /* Full size */
+  width: 100%;
+  height: 100%;
+  
+  /* Remove default border */
+  border: none;
+  
+  /* Smooth rendering */
+  display: block;
+  
+  /* GPU acceleration */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ============================================================================
+   Loading and Error States
+   ============================================================================ */
+
+.flipbook-viewer__content > div[class*="absolute"] {
+  /* Ensure overlays cover entire content area */
+  position: absolute;
+  inset: 0;
+  
+  /* Center content */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Smooth transitions */
+  animation: fadeIn 0.2s ease;
+}
+
+/* ============================================================================
+   Touch-Friendly Sizing
+   ============================================================================ */
+
+/* Ensure all interactive elements meet minimum touch target size */
+.flipbook-viewer button {
+  min-width: 44px;
+  min-height: 44px;
+  
+  /* Touch feedback */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================================================
+   Responsive Breakpoints
+   ============================================================================ */
+
+/* Tablet and smaller (768px and below) */
+@media (max-width: 768px) {
+  .flipbook-viewer__header {
+    min-height: 72px;
+    padding: 12px !important;
+  }
+  
+  .flipbook-viewer__header h2 {
+    font-size: 1.25rem;
+  }
+  
+  /* Adjust button sizing for smaller screens */
+  .flipbook-viewer__header button {
+    min-width: 120px;
+    padding: 12px 16px;
+  }
+}
+
+/* Mobile (480px and below) */
+@media (max-width: 480px) {
+  .flipbook-viewer__header {
+    min-height: 64px;
+    padding: 10px !important;
+  }
+  
+  .flipbook-viewer__header h2 {
+    font-size: 1.125rem;
+  }
+  
+  /* Stack header elements on very small screens if needed */
+  .flipbook-viewer__header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .flipbook-viewer__header button {
+    min-width: 100px;
+    padding: 10px 14px;
+    font-size: 0.875rem;
+  }
+}
+
+/* ============================================================================
+   Landscape Orientation
+   ============================================================================ */
+
+@media (orientation: landscape) and (max-height: 600px) {
+  /* Reduce header height in landscape on short screens */
+  .flipbook-viewer__header {
+    min-height: 56px;
+    padding: 8px !important;
+  }
+  
+  .flipbook-viewer__header h2 {
+    font-size: 1rem;
+  }
+  
+  .flipbook-viewer__header button {
+    padding: 8px 12px;
+    font-size: 0.875rem;
+  }
+}
+
+/* ============================================================================
+   High Contrast Mode
+   ============================================================================ */
+
+@media (prefers-contrast: high) {
+  .flipbook-viewer__header {
+    border-bottom-width: 3px;
+  }
+  
+  .flipbook-viewer__iframe {
+    border: 2px solid currentColor;
+  }
+  
+  .flipbook-viewer button:focus-visible {
+    outline-width: 4px;
+  }
+}
+
+/* ============================================================================
+   Reduced Motion
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .flipbook-viewer *,
+  .flipbook-viewer *::before,
+  .flipbook-viewer *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================================
+   Focus Management
+   ============================================================================ */
+
+.flipbook-viewer *:focus-visible {
+  outline: 3px solid hsl(var(--kiosk-gold, 198 146 20));
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   Animations
+   ============================================================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+
+@media print {
+  .flipbook-viewer__header {
+    display: none !important;
+  }
+  
+  .flipbook-viewer__content {
+    position: static;
+    overflow: visible;
+  }
+}
+
+/* ============================================================================
+   Performance Optimizations
+   ============================================================================ */
+
+.flipbook-viewer * {
+  /* Optimize text rendering */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* GPU acceleration for animated elements */
+.flipbook-viewer button {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ============================================================================
+   Screen Reader Only Content
+   ============================================================================ */
+
+.flipbook-viewer .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
