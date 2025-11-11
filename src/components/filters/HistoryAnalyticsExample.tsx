@@ -305,7 +305,7 @@ export const HistoryAnalyticsExample: React.FC = () => {
           </h3>
           <ul style={{ lineHeight: '1.8', paddingLeft: '20px' }}>
             <li>🔍 <strong>Search History:</strong> View timeline of all searches with details</li>
-            <li>📊 <strong>Analytics Dashboard:</strong> Comprehensive statistics and insights</li>
+            <li>📊 <strong>Search Analytics:</strong> Comprehensive statistics and insights</li>
             <li>🔄 <strong>Re-execute Searches:</strong> Quickly re-run previous searches</li>
             <li>📈 <strong>Top Terms:</strong> See most frequently searched terms</li>
             <li>🎯 <strong>Category Distribution:</strong> Visual breakdown by content type</li>

@@ -254,42 +254,6 @@ describe('KioskSearchInterface Component', () => {
       expect(executeSearch).toHaveBeenCalled();
     });
 
-    it('should track filter usage in analytics', () => {
-      const trackFilter = vi.fn();
-      trackFilter({ type: 'photo' });
-      expect(trackFilter).toHaveBeenCalled();
-    });
-  });
-
-  describe('Analytics Integration (Requirement 10.4)', () => {
-    it('should emit search query events', () => {
-      const trackSearch = vi.fn();
-      trackSearch('test query', {}, [], 150);
-      expect(trackSearch).toHaveBeenCalled();
-    });
-
-    it('should track filter usage', () => {
-      const trackFilter = vi.fn();
-      trackFilter({ type: 'alumni' });
-      expect(trackFilter).toHaveBeenCalled();
-    });
-
-    it('should log error occurrences', () => {
-      const trackError = vi.fn();
-      trackError(new Error('Test error'));
-      expect(trackError).toHaveBeenCalled();
-    });
-
-    it('should monitor performance metrics', () => {
-      const queryTime = 145;
-      expect(queryTime).toBeLessThan(150);
-    });
-
-    it('should track result clicks', () => {
-      const trackClick = vi.fn();
-      trackClick('event-id', { id: '1' }, 0);
-      expect(trackClick).toHaveBeenCalled();
-    });
   });
 
   describe('Result Caching', () => {

@@ -6,7 +6,6 @@ import { SearchManager } from '@/lib/database/search-manager';
 import { SearchResult, SearchFilters } from '@/lib/database/types';
 import { FilterOptions } from '@/lib/database/filter-processor';
 import { FallbackSearchManager } from '@/lib/database/fallback-search';
-import { getAnalyticsEngine } from '@/lib/analytics/analytics-engine';
 import { FilterPanel } from './FilterPanel';
 import { TouchKeyboard } from './TouchKeyboard';
 
@@ -75,18 +74,9 @@ export const KioskSearchInterface: React.FC<KioskSearchInterfaceProps> = ({
     new Map()
   );
   const retryTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const searchStartTimeRef = useRef<Date | null>(null);
-  const currentSearchEventIdRef = useRef<string | null>(null);
   const CACHE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   const MAX_RETRY_ATTEMPTS = 3;
   const RETRY_DELAY = 2000; // 2 seconds
-
-  // Analytics engine instance
-  const analyticsEngine = useRef(getAnalyticsEngine({
-    enableTracking: true,
-    anonymizeData: true,
-    enableRealTimeMetrics: true
-  })).current;
 
   /**
    * Update state helper
@@ -211,17 +201,6 @@ export const KioskSearchInterface: React.FC<KioskSearchInterfaceProps> = ({
         isRetrying: false
       });
 
-      // Track search analytics (Requirement 10.4)
-      const searchEventId = analyticsEngine.trackSearch(
-        query,
-        filters as SearchFilters,
-        results,
-        queryTime,
-        'search_interface'
-      );
-      currentSearchEventIdRef.current = searchEventId;
-      searchStartTimeRef.current = new Date();
-
       // Log performance metrics
       console.log(`[KioskSearch] Search completed in ${queryTime}ms, found ${results.length} results`);
 
@@ -247,13 +226,6 @@ export const KioskSearchInterface: React.FC<KioskSearchInterfaceProps> = ({
         await executeFallbackSearch(query, filters);
         return;
       }
-
-      // Track error analytics (Requirement 10.4)
-      analyticsEngine.trackError(
-        error instanceof Error ? error : new Error(errorMessage),
-        'search_query',
-        query
-      );
 
       // Update state with error, but keep last successful results
       updateState({
@@ -456,7 +428,7 @@ export const KioskSearchInterface: React.FC<KioskSearchInterfaceProps> = ({
    * Requirements: 4.2, 4.3, 4.4, 4.5, 4.6
    */
   const handleFiltersChange = useCallback((newFilters: FilterOptions) => {
-    // Track filter usage analytics (Requirement 10.4)
+    // Log filter usage for observability
     console.log('[KioskSearch] Filter changed:', newFilters);
     
     updateState({ filters: newFilters });
@@ -520,19 +492,9 @@ export const KioskSearchInterface: React.FC<KioskSearchInterfaceProps> = ({
    * Handle result selection
    */
   const handleResultClick = useCallback((result: SearchResult) => {
-    // Track result click analytics (Requirement 10.4)
-    if (currentSearchEventIdRef.current && searchStartTimeRef.current) {
-      const position = state.results.findIndex(r => r.id === result.id);
-      analyticsEngine.trackResultClick(
-        currentSearchEventIdRef.current,
-        result,
-        position,
-        searchStartTimeRef.current
-      );
-    }
-
+    // Handle result selection
     onResultSelect(result);
-  }, [onResultSelect, state.results, analyticsEngine]);
+  }, [onResultSelect, state.results]);
 
   /**
    * Cleanup on unmount

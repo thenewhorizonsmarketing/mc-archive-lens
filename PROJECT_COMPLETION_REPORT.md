@@ -158,12 +158,11 @@ src/components/admin/
 └── ImportProgressTracker.tsx   # Import monitoring
 ```
 
-### Security & Infrastructure (8 files)
+### Security & Infrastructure (6 files)
 ```
 src/lib/
 ├── security/security-manager.ts     # Security framework
 ├── accessibility/accessibility-manager.ts # WCAG compliance
-├── analytics/analytics-engine.ts    # Usage tracking
 ├── logging/logger.ts               # Comprehensive logging
 ├── deployment/deployment-manager.ts # Automated deployment
 ├── testing/comprehensive-test-runner.ts # Testing framework
