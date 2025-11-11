@@ -1,457 +1,367 @@
 /**
- * MC Law Clue Board Theme
+ * MC Law Clue Board Theme - Modernized
  * Brand colors and design system for 3D Clue board homepage
+ * Updated with latest CSS features (2024+)
  */
 
+/* ===== Base Styles ===== */
 :root {
-  /* ===== MC Law Primary Brand Colors ===== */
-  --mc-blue: #0C2340;           /* PANTONE 289 - Primary Blue */
-  --mc-gold: #C99700;           /* PANTONE 117 - Choctaw Gold */
-  --celestial-blue: #69B3E7;    /* PANTONE 292 - Accent Blue */
-  
-  /* ===== Derived Color Variations ===== */
-  --mc-blue-light: rgba(12, 35, 64, 0.8);
-  --mc-blue-dark: rgba(12, 35, 64, 0.95);
-  --mc-blue-transparent: rgba(12, 35, 64, 0.1);
-  
-  --mc-gold-light: rgba(201, 151, 0, 0.8);
-  --mc-gold-glow: rgba(201, 151, 0, 0.3);
-  --mc-gold-transparent: rgba(201, 151, 0, 0.1);
-  
-  --celestial-blue-light: rgba(105, 179, 231, 0.8);
-  --celestial-blue-transparent: rgba(105, 179, 231, 0.1);
-  
-  /* ===== Material Colors ===== */
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-bg-hover: rgba(255, 255, 255, 0.15);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --glass-border-hover: rgba(201, 151, 0, 0.6);
-  
-  --wood-brown: #8B4513;
-  --wood-dark: #654321;
-  --wood-light: #A0522D;
-  
-  /* ===== Typography ===== */
-  --font-primary: 'New Atten', 'Source Sans 3', 'Trebuchet MS', sans-serif;
-  --font-primary-bold: 'New Atten Bold', 'Source Sans 3', sans-serif;
-  --font-primary-extra-bold: 'New Atten Extra Bold', 'Source Sans 3', sans-serif;
-  --font-secondary: 'PS Fournier Std', 'Source Serif 4', 'Georgia', serif;
-  --font-secondary-grand: 'PS Fournier Std Grand', 'Source Serif 4', serif;
-  
-  /* ===== Multi-Layer Shadow System ===== */
-  /* Ambient Shadow - Soft, diffused */
-  --shadow-ambient: 0 2px 8px rgba(0, 0, 0, 0.04);
-  
-  /* Direct Shadow - Stronger, directional */
-  --shadow-direct: 0 4px 16px rgba(0, 0, 0, 0.12);
-  
-  /* Contact Shadow - Darkest, closest to surface */
-  --shadow-contact: 0 1px 2px rgba(0, 0, 0, 0.2);
-  
-  /* Combined Elevation Shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16), 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.24), 0 8px 32px rgba(0, 0, 0, 0.16), 0 4px 16px rgba(0, 0, 0, 0.12);
-  
-  /* Gold Glow Shadow */
-  --shadow-gold-glow: 0 0 20px rgba(201, 151, 0, 0.3), 0 0 40px rgba(201, 151, 0, 0.2);
-  
-  /* ===== Animation Timing ===== */
-  --timing-fast: 200ms;
-  --timing-normal: 300ms;
-  --timing-slow: 600ms;
-  
-  --easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-  --easing-zoom: cubic-bezier(0.43, 0.13, 0.23, 0.96);
-  --easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  
-  /* ===== 3D Perspective ===== */
-  --perspective: 1200px;
-  --perspective-origin: center center;
-  
-  /* ===== Z-Index Layers ===== */
-  --z-board-frame: 10;
-  --z-board-content: 20;
-  --z-room-card: 30;
-  --z-room-card-hover: 40;
-  --z-room-card-zoom: 50;
-  --z-central-branding: 25;
-}
-
-/* ===== Global Styles ===== */
-* {
-  box-sizing: border-box;
-}
-
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Reduced motion support - Global override for accessibility */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+    /* ===== Color Scheme Support ===== */
+    color-scheme: light dark;
+    
+    /* ===== MC Law Primary Brand Colors (Modern oklch syntax) ===== */
+    --mc-blue: oklch(25% 0.08 250);           /* PANTONE 289 - Primary Blue */
+    --mc-gold: oklch(70% 0.15 85);            /* PANTONE 117 - Choctaw Gold */
+    --celestial-blue: oklch(68% 0.12 230);    /* PANTONE 292 - Accent Blue */
+    
+    /* ===== Derived Color Variations (Using color-mix) ===== */
+    --mc-blue-light: color-mix(in oklch, var(--mc-blue) 80%, white);
+    --mc-blue-dark: color-mix(in oklch, var(--mc-blue) 95%, black);
+    --mc-blue-transparent: color-mix(in oklch, var(--mc-blue) 10%, transparent);
+    
+    --mc-gold-light: color-mix(in oklch, var(--mc-gold) 80%, white);
+    --mc-gold-glow: color-mix(in oklch, var(--mc-gold) 30%, transparent);
+    --mc-gold-transparent: color-mix(in oklch, var(--mc-gold) 10%, transparent);
+    
+    --celestial-blue-light: color-mix(in oklch, var(--celestial-blue) 80%, white);
+    --celestial-blue-transparent: color-mix(in oklch, var(--celestial-blue) 10%, transparent);
+    
+    /* ===== Material Colors ===== */
+    --glass-bg: color-mix(in oklch, white 10%, transparent);
+    --glass-bg-hover: color-mix(in oklch, white 15%, transparent);
+    --glass-border: color-mix(in oklch, white 20%, transparent);
+    --glass-border-hover: color-mix(in oklch, var(--mc-gold) 60%, transparent);
+    
+    --wood-brown: oklch(45% 0.08 45);
+    --wood-dark: oklch(35% 0.08 45);
+    --wood-light: oklch(52% 0.08 45);
+    
+    /* ===== Typography with Fluid Sizing ===== */
+    --font-primary: 'New Atten', 'Source Sans 3', 'Trebuchet MS', sans-serif;
+    --font-primary-bold: 'New Atten Bold', 'Source Sans 3', sans-serif;
+    --font-primary-extra-bold: 'New Atten Extra Bold', 'Source Sans 3', sans-serif;
+    --font-secondary: 'PS Fournier Std', 'Source Serif 4', 'Georgia', serif;
+    --font-secondary-grand: 'PS Fournier Std Grand', 'Source Serif 4', serif;
+    
+    /* Fluid Typography Sizes */
+    --text-xs: clamp(0.6875rem, 1.5vw + 0.3rem, 0.75rem);
+    --text-sm: clamp(0.75rem, 1.5vw + 0.4rem, 0.875rem);
+    --text-base: clamp(0.875rem, 2vw + 0.5rem, 1rem);
+    --text-lg: clamp(1rem, 2.5vw + 0.5rem, 1.25rem);
+    --text-xl: clamp(1.125rem, 3vw + 0.5rem, 1.5rem);
+    
+    /* ===== Logical Property Spacing ===== */
+    --spacing-inline: 20px;
+    --spacing-block: 20px;
+    
+    /* ===== Multi-Layer Shadow System ===== */
+    --shadow-ambient: 0 2px 8px oklch(0% 0 0 / 0.04);
+    --shadow-direct: 0 4px 16px oklch(0% 0 0 / 0.12);
+    --shadow-contact: 0 1px 2px oklch(0% 0 0 / 0.2);
+    
+    /* Combined Elevation Shadows */
+    --shadow-sm: 
+      0 2px 8px oklch(0% 0 0 / 0.04), 
+      0 1px 2px oklch(0% 0 0 / 0.2);
+    --shadow-md: 
+      0 2px 8px oklch(0% 0 0 / 0.04), 
+      0 4px 16px oklch(0% 0 0 / 0.12), 
+      0 1px 2px oklch(0% 0 0 / 0.2);
+    --shadow-lg: 
+      0 8px 32px oklch(0% 0 0 / 0.16), 
+      0 4px 16px oklch(0% 0 0 / 0.12), 
+      0 1px 2px oklch(0% 0 0 / 0.2);
+    --shadow-xl: 
+      0 16px 48px oklch(0% 0 0 / 0.24), 
+      0 8px 32px oklch(0% 0 0 / 0.16), 
+      0 4px 16px oklch(0% 0 0 / 0.12);
+    
+    /* Gold Glow Shadow */
+    --shadow-gold-glow: 
+      0 0 20px color-mix(in oklch, var(--mc-gold) 30%, transparent), 
+      0 0 40px color-mix(in oklch, var(--mc-gold) 20%, transparent);
+    
+    /* ===== Animation Timing ===== */
+    --timing-fast: 200ms;
+    --timing-normal: 300ms;
+    --timing-slow: 600ms;
+    
+    --easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --easing-zoom: cubic-bezier(0.43, 0.13, 0.23, 0.96);
+    --easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    
+    /* ===== 3D Perspective ===== */
+    --perspective: 1200px;
+    --perspective-origin: center center;
+    
+    /* ===== Z-Index Layers ===== */
+    --z-board-frame: 10;
+    --z-board-content: 20;
+    --z-central-branding: 25;
+    --z-room-card: 30;
+    --z-search-button: 35;
+    --z-room-card-hover: 40;
+    --z-room-card-zoom: 50;
+    --z-search-overlay: 100;
   }
-  
-  /* Ensure Framer Motion respects reduced motion */
+
+  /* ===== Global Styles ===== */
+  * {
+    box-sizing: border-box;
+  }
+
   html {
-    scroll-behavior: auto !important;
+    scroll-behavior: smooth;
   }
-}
 
-/* GPU acceleration for animated elements */
-.gpu-accelerated {
-  will-change: transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
+  /* Reduced motion support - Global override for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 
-/* 3D transform context */
-.preserve-3d {
-  transform-style: preserve-3d;
-}
+  /* 3D transform context */
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
 
+/* ===== Component Styles ===== */
 /* ===== Fullscreen Search Button ===== */
 .fullscreen-search-button-wrapper {
-  width: 100%;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 0 20px;
-  position: relative;
-  z-index: 35; /* Above room cards but below hover states */
-}
+    position: relative;
+    z-index: var(--z-search-button);
+    margin-block: 2rem;
+    margin-inline: auto;
+    max-inline-size: 600px;
+    padding-inline: 1rem;
+    
+    /* Container query support */
+    container-type: inline-size;
+    container-name: search-wrapper;
+  }
 
-.fullscreen-search-button {
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 80px;
-  padding: 20px 32px;
-  
-  /* Touch-friendly sizing - exceeds 60x60px minimum */
-  min-width: 280px;
-  
-  /* Visual styling with MC Law branding */
-  background: linear-gradient(135deg, 
-    var(--mc-blue) 0%, 
-    var(--mc-blue-dark) 100%
-  );
-  border: 2px solid var(--mc-gold);
-  border-radius: 16px;
-  
-  /* Glass effect */
-  backdrop-filter: blur(10px);
-  box-shadow: 
-    var(--shadow-md),
-    0 0 30px rgba(201, 151, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  
-  /* Typography */
-  color: white;
-  font-family: var(--font-primary-bold);
-  
-  /* Interaction */
-  cursor: pointer;
-  transition: all var(--timing-normal) var(--easing-smooth);
-  
-  /* Performance */
-  will-change: transform, box-shadow;
-  transform: translateZ(0);
-  contain: layout style paint;
-}
+  /* Entry animation support */
+  @starting-style {
+    .fullscreen-search-button {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+  }
 
-.fullscreen-search-icon {
-  width: 32px;
-  height: 32px;
-  color: var(--mc-gold);
-  transition: transform var(--timing-normal) var(--easing-smooth);
-}
-
-.fullscreen-search-text {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-align: center;
-}
-
-.fullscreen-search-hint {
-  font-size: 0.875rem;
-  font-family: var(--font-primary);
-  font-weight: 400;
-  color: var(--celestial-blue);
-  opacity: 0.9;
-  text-align: center;
-}
-
-/* Hover state - for mouse users */
-.fullscreen-search-button:hover {
-  transform: translateY(-2px) scale(1.02);
-  border-color: var(--mc-gold);
-  box-shadow: 
-    var(--shadow-lg),
-    var(--shadow-gold-glow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.fullscreen-search-button:hover .fullscreen-search-icon {
-  transform: scale(1.1);
-}
-
-/* Active/pressed state - for touch users */
-.fullscreen-search-button:active {
-  transform: translateY(0) scale(0.98);
-  box-shadow: 
-    var(--shadow-sm),
-    0 0 20px rgba(201, 151, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-/* Focus state for keyboard navigation */
-.fullscreen-search-button:focus-visible {
-  outline: 3px solid var(--mc-gold);
-  outline-offset: 4px;
-}
-
-/* Touch feedback - visual indication */
-@media (hover: none) and (pointer: coarse) {
-  .fullscreen-search-button:active {
-    background: linear-gradient(135deg, 
-      var(--mc-blue-dark) 0%, 
-      var(--mc-blue) 100%
+  .fullscreen-search-button {
+    /* Layout */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    inline-size: 100%;
+    min-block-size: 80px;
+    padding-block: 1.5rem;
+    padding-inline: 2rem;
+    
+    /* Touch-friendly sizing */
+    min-inline-size: 280px;
+    
+    /* Visual styling with modern gradient */
+    background: linear-gradient(in oklch 135deg, 
+      var(--mc-blue) 0%, 
+      var(--mc-blue-dark) 100%
     );
+    border: 2px solid var(--mc-gold);
+    border-radius: 16px;
+    
+    /* Glass effect */
+    backdrop-filter: blur(10px);
+    box-shadow: 
+      var(--shadow-md),
+      var(--shadow-gold-glow),
+      inset 0 1px 0 color-mix(in oklch, white 10%, transparent);
+    
+    /* Typography */
+    color: white;
+    font-family: var(--font-primary-bold);
+    
+    /* Interaction */
+    cursor: pointer;
+    transition: 
+      opacity var(--timing-normal) var(--easing-smooth),
+      transform var(--timing-normal) var(--easing-smooth),
+      border-color var(--timing-normal) var(--easing-smooth),
+      box-shadow var(--timing-normal) var(--easing-smooth);
+    
+    /* Performance - GPU acceleration */
+    transform: translate3d(0, 0, 0);
+    contain: layout style paint;
+    
+    /* Entry animation */
+    opacity: 1;
+    
+    /* Shimmer effect */
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline-start: -100%;
+      inline-size: 100%;
+      block-size: 100%;
+      background: linear-gradient(90deg, 
+        transparent, 
+        color-mix(in oklch, white 10%, transparent), 
+        transparent
+      );
+      transition: inset-inline-start 500ms var(--easing-smooth);
+    }
+    
+    /* Hover state */
+    &:hover {
+      transform: translateY(-2px) scale(1.02);
+      border-color: var(--mc-gold);
+      box-shadow: 
+        var(--shadow-lg),
+        var(--shadow-gold-glow),
+        inset 0 1px 0 color-mix(in oklch, white 15%, transparent);
+      
+      /* Apply will-change only when needed */
+      will-change: transform, box-shadow;
+      
+      &::before {
+        inset-inline-start: 100%;
+      }
+      
+      & .fullscreen-search-icon {
+        transform: scale(1.1);
+      }
+    }
+    
+    /* Active/pressed state */
+    &:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: 
+        var(--shadow-sm),
+        0 0 20px color-mix(in oklch, var(--mc-gold) 30%, transparent),
+        inset 0 1px 0 color-mix(in oklch, white 10%, transparent);
+    }
+    
+    /* Focus state for keyboard navigation */
+    &:focus-visible {
+      outline: 3px solid var(--mc-gold);
+      outline-offset: 4px;
+    }
   }
-}
 
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .fullscreen-search-button-wrapper {
-    padding: 0 16px;
-  }
-  
-  .fullscreen-search-button {
-    min-height: 72px;
-    padding: 16px 24px;
-  }
-  
   .fullscreen-search-icon {
-    width: 28px;
-    height: 28px;
+    inline-size: 32px;
+    block-size: 32px;
+    color: var(--mc-gold);
+    transition: transform var(--timing-normal) var(--easing-smooth);
+    filter: drop-shadow(0 2px 4px oklch(0% 0 0 / 0.3));
   }
-  
+
   .fullscreen-search-text {
-    font-size: 1.25rem;
+    font-size: var(--text-xl);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-align: center;
+    text-shadow: 0 2px 4px oklch(0% 0 0 / 0.3);
   }
-  
+
   .fullscreen-search-hint {
-    font-size: 0.8125rem;
+    font-size: var(--text-sm);
+    font-family: var(--font-primary);
+    font-weight: 400;
+    color: var(--celestial-blue);
+    opacity: 0.9;
+    text-align: center;
   }
+
+  /* Touch device optimizations */
+  @media (hover: none) and (pointer: coarse) {
+    .fullscreen-search-button {
+      min-block-size: 100px;
+      
+      &:active {
+        background: linear-gradient(in oklch 135deg, 
+          var(--mc-blue-dark) 0%, 
+          var(--mc-blue) 100%
+        );
+      }
+    }
+  }
+
+  /* Container Queries for Responsive Design */
+  @container search-wrapper (max-width: 768px) {
+    .fullscreen-search-button-wrapper {
+      margin-block: 1rem;
+    }
+    
+    .fullscreen-search-button {
+      min-block-size: 90px;
+      padding-block: 1.25rem;
+      padding-inline: 1.5rem;
+    }
+  }
+
+  @container search-wrapper (max-width: 480px) {
+    .fullscreen-search-button {
+      min-block-size: 80px;
+      padding-block: 1rem;
+      padding-inline: 1.25rem;
+      gap: 0.5rem;
+    }
+    
+    .fullscreen-search-icon {
+      inline-size: 28px;
+      block-size: 28px;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .fullscreen-search-button {
+      transition: none;
+      
+      &::before {
+        display: none;
+      }
+      
+      &:hover {
+        transform: none;
+        will-change: auto;
+        
+        & .fullscreen-search-icon {
+          transform: none;
+        }
+      }
+      
+      &:active {
+        transform: none;
+      }
+    }
+    
+    .fullscreen-search-icon {
+      transition: none;
+    }
+  }
+
+/* ===== Utility Classes ===== */
+/* GPU acceleration utility */
+.gpu-accelerated {
+  transform: translate3d(0, 0, 0);
 }
 
-@media (max-width: 768px) {
-  .fullscreen-search-button-wrapper {
-    padding: 0 12px;
-  }
-  
+/* High contrast mode support */
+@media (prefers-contrast: high) {
   .fullscreen-search-button {
-    min-height: 68px;
-    padding: 14px 20px;
-    gap: 10px;
-  }
-  
-  .fullscreen-search-icon {
-    width: 26px;
-    height: 26px;
-  }
-  
-  .fullscreen-search-text {
-    font-size: 1.125rem;
-  }
-  
-  .fullscreen-search-hint {
-    font-size: 0.75rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .fullscreen-search-button {
-    min-height: 64px;
-    padding: 12px 16px;
-    gap: 8px;
-    min-width: 240px;
-  }
-  
-  .fullscreen-search-icon {
-    width: 24px;
-    height: 24px;
-  }
-  
-  .fullscreen-search-text {
-    font-size: 1rem;
-  }
-  
-  .fullscreen-search-hint {
-    font-size: 0.6875rem;
-  }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .fullscreen-search-button {
-    transition: none;
-  }
-  
-  .fullscreen-search-button:hover {
-    transform: none;
-  }
-  
-  .fullscreen-search-button:active {
-    transform: none;
-  }
-  
-  .fullscreen-search-icon {
-    transition: none;
-  }
-}
-
-/* ===== Fullscreen Search Button Styles ===== */
-.fullscreen-search-button-wrapper {
-  position: relative;
-  z-index: 100;
-  margin: 2rem auto;
-  max-width: 600px;
-  padding: 0 1rem;
-}
-
-.fullscreen-search-button {
-  width: 100%;
-  min-height: 80px;
-  background: linear-gradient(135deg, var(--mc-blue) 0%, var(--mc-blue-dark) 100%);
-  border: 2px solid var(--mc-gold);
-  border-radius: 16px;
-  padding: 1.5rem 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  transition: all 200ms ease;
-  box-shadow: 
-    var(--shadow-ambient),
-    var(--shadow-direct),
-    0 0 20px var(--mc-gold-glow);
-  position: relative;
-  overflow: hidden;
-}
-
-.fullscreen-search-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transition: left 500ms ease;
-}
-
-.fullscreen-search-button:hover {
-  transform: translateY(-2px);
-  border-color: var(--mc-gold);
-  box-shadow: 
-    var(--shadow-ambient),
-    var(--shadow-direct),
-    0 0 30px var(--mc-gold-glow),
-    0 8px 24px rgba(0, 0, 0, 0.2);
-}
-
-.fullscreen-search-button:hover::before {
-  left: 100%;
-}
-
-.fullscreen-search-button:active {
-  transform: translateY(0);
-  box-shadow: 
-    var(--shadow-contact),
-    0 0 15px var(--mc-gold-glow);
-}
-
-.fullscreen-search-button:focus-visible {
-  outline: 3px solid var(--mc-gold);
-  outline-offset: 4px;
-}
-
-.fullscreen-search-icon {
-  width: 32px;
-  height: 32px;
-  color: var(--mc-gold);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-.fullscreen-search-text {
-  font-family: var(--font-primary-bold);
-  font-size: 1.5rem;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.5px;
-}
-
-.fullscreen-search-hint {
-  font-family: var(--font-primary);
-  font-size: 0.875rem;
-  color: var(--celestial-blue);
-  opacity: 0.9;
-}
-
-/* Touch device optimizations */
-@media (hover: none) and (pointer: coarse) {
-  .fullscreen-search-button {
-    min-height: 100px;
-  }
-  
-  .fullscreen-search-button:active {
-    background: linear-gradient(135deg, var(--mc-blue-dark) 0%, var(--mc-blue) 100%);
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .fullscreen-search-button-wrapper {
-    margin: 1rem auto;
-  }
-  
-  .fullscreen-search-button {
-    min-height: 90px;
-    padding: 1.25rem 1.5rem;
-  }
-  
-  .fullscreen-search-text {
-    font-size: 1.25rem;
-  }
-  
-  .fullscreen-search-hint {
-    font-size: 0.75rem;
-  }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .fullscreen-search-button {
-    transition: none;
-  }
-  
-  .fullscreen-search-button::before {
-    display: none;
+    border-width: 3px;
   }
 }
